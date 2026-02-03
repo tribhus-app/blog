@@ -1,0 +1,1465 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BlogPost {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String        @db.VarChar(255)
+  slug            String        @unique @db.VarChar(255)
+  excerpt         String?
+  content         String
+  coverImage      String?       @map("cover_image") @db.VarChar(500)
+  imageCredit     String?       @map("image_credit") @db.VarChar(255)
+  imageCreditUrl  String?       @map("image_credit_url") @db.VarChar(500)
+  status          post_status?  @default(draft)
+  featured        Boolean?      @default(false)
+  publishedAt     DateTime?     @map("published_at") @db.Timestamp(6)
+  scheduledAt     DateTime?     @map("scheduled_at") @db.Timestamp(6)
+  views           Int?          @default(0)
+  metaTitle       String?       @map("meta_title") @db.VarChar(70)
+  metaDescription String?       @map("meta_description") @db.VarChar(170)
+  focusKeyword    String?       @map("focus_keyword") @db.VarChar(100)
+  sourceUrl       String?       @map("source_url") @db.VarChar(500)
+  sourceName      String?       @map("source_name") @db.VarChar(100)
+  createdAt       DateTime?     @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime?     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  categoryId      String?       @map("category_id") @db.Uuid
+  authorId        String        @map("author_id") @db.Uuid
+  tags            BlogPostTag[]
+  author          BlogAuthor    @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category        BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([authorId], map: "idx_blog_posts_author_id")
+  @@index([categoryId], map: "idx_blog_posts_category_id")
+  @@index([publishedAt], map: "idx_blog_posts_published_at")
+  @@index([slug], map: "idx_blog_posts_slug")
+  @@index([status], map: "idx_blog_posts_status")
+  @@map("blog_posts")
+}
+
+model BlogCategory {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String     @db.VarChar(100)
+  slug        String     @unique @db.VarChar(100)
+  description String?
+  color       String?    @default("#914100") @db.VarChar(7)
+  createdAt   DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  posts       BlogPost[]
+
+  @@index([slug], map: "idx_blog_categories_slug")
+  @@map("blog_categories")
+}
+
+model BlogAuthor {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String     @db.VarChar(100)
+  slug      String     @unique @db.VarChar(100)
+  bio       String?
+  avatar    String?    @db.VarChar(500)
+  email     String     @unique @db.VarChar(255)
+  password  String?    @db.VarChar(255)
+  isAi      Boolean?   @default(false) @map("is_ai")
+  isAdmin   Boolean?   @default(false) @map("is_admin")
+  createdAt DateTime?  @default(now()) @map("created_at") @db.Timestamp(6)
+  posts     BlogPost[]
+
+  @@index([email], map: "idx_blog_authors_email")
+  @@index([slug], map: "idx_blog_authors_slug")
+  @@map("blog_authors")
+}
+
+model BlogTag {
+  id    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name  String        @db.VarChar(50)
+  slug  String        @unique @db.VarChar(50)
+  posts BlogPostTag[]
+
+  @@index([slug], map: "idx_blog_tags_slug")
+  @@map("blog_tags")
+}
+
+model BlogPostTag {
+  postId String   @map("post_id") @db.Uuid
+  tagId  String   @map("tag_id") @db.Uuid
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([postId, tagId])
+  @@map("blog_post_tags")
+}
+
+model BlogSettings {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key       String    @unique @db.VarChar(100)
+  value     String
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@map("blog_settings")
+}
+
+model admin_users {
+  id_admin   Int       @id @default(autoincrement())
+  email      String    @unique @db.VarChar(255)
+  senha      String    @db.VarChar(255)
+  nome       String    @db.VarChar(100)
+  ativo      Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  last_login DateTime? @db.Timestamp(6)
+}
+
+model ajuda {
+  id             Int             @id @default(autoincrement())
+  id_usuario     Int?
+  id_banda       Int?
+  mensagem       String
+  data_envio     DateTime?       @default(now()) @db.Timestamp(6)
+  nome           String          @default("Visitante") @db.VarChar(100)
+  email          String?         @db.VarChar(150)
+  telefone       String?         @db.VarChar(20)
+  tela           String?         @db.VarChar(255)
+  id_empresa     Int?
+  empresa        empresa?        @relation(fields: [id_empresa], references: [id_empresa], onUpdate: NoAction, map: "fk_ajuda_empresa")
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onUpdate: NoAction, map: "fk_banda")
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: NoAction, map: "fk_usuario")
+
+  @@index([id_empresa], map: "idx_ajuda_id_empresa")
+}
+
+model albuns {
+  id_album       Int              @id @default(autoincrement())
+  id_banda       Int?
+  nome_album     String           @db.VarChar(255)
+  ano_lancamento Int?
+  url_capa_album String?          @db.VarChar(2048)
+  created_at     DateTime?        @db.Timestamp(6)
+  deleted_at     DateTime?        @db.Timestamp(6)
+  banda          banda?           @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  albuns_estante albuns_estante[]
+  musicas        musicas[]
+  postagens      postagens[]
+}
+
+model albuns_estante {
+  id              Int            @id @default(autoincrement())
+  id_usuario      Int
+  id_album        Int
+  data_adicionado DateTime?      @default(now()) @db.Timestamptz(6)
+  albuns          albuns         @relation(fields: [id_album], references: [id_album], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario  tabela_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model albuns_foto {
+  id_album_foto     Int       @id @default(autoincrement())
+  nome              String    @db.VarChar(100)
+  descricao         String?
+  id_proprietario   Int
+  tipo_proprietario String    @db.VarChar(10)
+  data_criacao      DateTime? @default(now()) @db.Timestamp(6)
+  deleted_at        DateTime? @db.Timestamp(6)
+  foto              foto[]
+}
+
+model amigos {
+  id_amigo         Int       @id @default(autoincrement())
+  id_usu_solicita  Int
+  id_usu_recebe    Int
+  data_amizade     DateTime? @default(now()) @db.Timestamp(6)
+  status           String    @default("aguardando") @db.VarChar(20)
+  data_confirmacao DateTime? @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model analytics_conversions {
+  conversion_id      Int                 @id @default(autoincrement())
+  session_id         String?             @db.Uuid
+  auth_id            Int
+  conversion_type    String              @db.VarChar(20)
+  city               String?             @db.VarChar(100)
+  state              String?             @db.VarChar(100)
+  country            String?             @db.VarChar(50)
+  created_at         DateTime?           @default(now()) @db.Timestamp(6)
+  auth               auth                @relation(fields: [auth_id], references: [auth_id], onDelete: Cascade, onUpdate: NoAction)
+  analytics_sessions analytics_sessions? @relation(fields: [session_id], references: [session_id], onUpdate: NoAction)
+
+  @@index([auth_id], map: "idx_conversions_auth_id")
+  @@index([created_at], map: "idx_conversions_created_at")
+  @@index([session_id], map: "idx_conversions_session_id")
+  @@index([state], map: "idx_conversions_state")
+  @@index([conversion_type], map: "idx_conversions_type")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model analytics_daily_stats {
+  stat_id                 Int      @id @default(autoincrement())
+  date                    DateTime @unique @db.Date
+  total_sessions          Int?     @default(0)
+  logged_sessions         Int?     @default(0)
+  guest_sessions          Int?     @default(0)
+  usuario_sessions        Int?     @default(0)
+  banda_sessions          Int?     @default(0)
+  empresa_sessions        Int?     @default(0)
+  mobile_sessions         Int?     @default(0)
+  web_sessions            Int?     @default(0)
+  ios_sessions            Int?     @default(0)
+  android_sessions        Int?     @default(0)
+  mobile_unknown_sessions Int?     @default(0)
+  desktop_sessions        Int?     @default(0)
+  total_conversions       Int?     @default(0)
+  usuario_conversions     Int?     @default(0)
+  banda_conversions       Int?     @default(0)
+  empresa_conversions     Int?     @default(0)
+
+  @@index([date], map: "idx_daily_stats_date")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model analytics_geo_stats {
+  geo_id                  Int      @id @default(autoincrement())
+  date                    DateTime @db.Date
+  state                   String?  @db.VarChar(100)
+  city                    String?  @db.VarChar(100)
+  total_sessions          Int?     @default(0)
+  logged_sessions         Int?     @default(0)
+  guest_sessions          Int?     @default(0)
+  ios_sessions            Int?     @default(0)
+  android_sessions        Int?     @default(0)
+  mobile_unknown_sessions Int?     @default(0)
+  desktop_sessions        Int?     @default(0)
+  total_conversions       Int?     @default(0)
+
+  @@unique([date, state, city])
+  @@index([city], map: "idx_geo_stats_city")
+  @@index([date, state], map: "idx_geo_stats_date_state")
+  @@index([state], map: "idx_geo_stats_state")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model analytics_sessions {
+  session_id            String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auth_id               Int?
+  user_type             String?                 @db.VarChar(20)
+  platform              String                  @db.VarChar(20)
+  user_agent            String?
+  device_type           String?                 @db.VarChar(20)
+  ip_address            String?                 @db.Inet
+  city                  String?                 @db.VarChar(100)
+  state                 String?                 @db.VarChar(100)
+  country               String?                 @db.VarChar(50)
+  country_code          String?                 @db.Char(2)
+  first_seen            DateTime?               @default(now()) @db.Timestamp(6)
+  last_seen             DateTime?               @default(now()) @db.Timestamp(6)
+  device_brand          String?                 @db.VarChar(50)
+  device_model          String?                 @db.VarChar(100)
+  device_identifier     String?                 @db.VarChar(50)
+  system_version        String?                 @db.VarChar(20)
+  app_version           String?                 @db.VarChar(20)
+  app_build             String?                 @db.VarChar(20)
+  is_tablet             Boolean?                @default(false)
+  device_unique_id      String?                 @db.VarChar(100)
+  device_display_name   String?                 @db.VarChar(150)
+  system_name           String?                 @db.VarChar(20)
+  manufacturer          String?                 @db.VarChar(50)
+  analytics_conversions analytics_conversions[]
+  auth                  auth?                   @relation(fields: [auth_id], references: [auth_id], onUpdate: NoAction)
+
+  @@index([app_version], map: "idx_analytics_sessions_app_version")
+  @@index([device_brand], map: "idx_analytics_sessions_device_brand")
+  @@index([device_model], map: "idx_analytics_sessions_device_model")
+  @@index([manufacturer], map: "idx_analytics_sessions_manufacturer")
+  @@index([system_version], map: "idx_analytics_sessions_system_version")
+  @@index([auth_id], map: "idx_sessions_auth_id")
+  @@index([city], map: "idx_sessions_city")
+  @@index([device_type], map: "idx_sessions_device_type")
+  @@index([first_seen], map: "idx_sessions_first_seen")
+  @@index([platform], map: "idx_sessions_platform")
+  @@index([state], map: "idx_sessions_state")
+  @@index([user_type], map: "idx_sessions_user_type")
+}
+
+model auth {
+  auth_id                 Int                     @id @default(autoincrement())
+  email                   String                  @unique @db.VarChar(255)
+  senha                   String                  @db.VarChar(255)
+  role                    String?                 @db.VarChar(255)
+  email_verification_code String?                 @db.VarChar(255)
+  sms_verification_code   String?                 @db.VarChar(255)
+  is_verified_sms         Boolean?                @default(false)
+  is_verified             Boolean?                @default(false)
+  phone                   String?                 @db.VarChar(255)
+  created_at              DateTime?               @db.Timestamp(6)
+  slug                    String?                 @unique(map: "unique_slug") @db.VarChar(255)
+  password_reset_token    String?                 @db.VarChar(255)
+  password_reset_expires  DateTime?               @db.Timestamptz(6)
+  analytics_conversions   analytics_conversions[]
+  analytics_sessions      analytics_sessions[]
+  banda                   banda?
+  celular_update          celular_update?
+  empresa                 empresa?
+  tabela_usuario          tabela_usuario?
+  termos_uso              termos_uso[]
+  user_sessions           user_sessions[]
+}
+
+model banda {
+  id_banda                                          Int                      @id @default(autoincrement())
+  nome_banda                                        String                   @unique @db.VarChar(100)
+  cnpj                                              String?                  @db.VarChar(18)
+  nome_responsavel                                  String?                  @db.VarChar(100)
+  nasc_responsavel                                  DateTime?                @db.Date
+  data_inicio                                       DateTime?                @db.Date
+  telefone                                          String?                  @db.VarChar(20)
+  descricao                                         String?
+  url_capa_banda                                    String?                  @db.VarChar(255)
+  url_icone_banda                                   String?                  @db.VarChar(255)
+  cidade                                            String?                  @db.VarChar(100)
+  estado                                            String?                  @db.VarChar(100)
+  id_musica_apresentacao                            Int?
+  url_facebook                                      String?                  @db.VarChar(255)
+  url_instagram                                     String?                  @db.VarChar(255)
+  url_spotify                                       String?                  @db.VarChar(255)
+  sobrenome_responsavel                             String?                  @db.VarChar(100)
+  auth_id                                           Int                      @unique
+  sluge                                             String?                  @unique(map: "banda_slug_key") @db.VarChar(255)
+  created_at                                        DateTime?                @db.Timestamp(6)
+  ajuda                                             ajuda[]
+  albuns                                            albuns[]
+  auth                                              auth                     @relation(fields: [auth_id], references: [auth_id], onDelete: NoAction, onUpdate: NoAction)
+  musicas_banda_id_musica_apresentacaoTomusicas     musicas?                 @relation("banda_id_musica_apresentacaoTomusicas", fields: [id_musica_apresentacao], references: [id_musica], onDelete: NoAction, onUpdate: NoAction)
+  banda_genero                                      banda_genero[]
+  comentarios                                       comentarios[]
+  comentarios_bloqueados                            comentarios_bloqueados[]
+  comentarios_musicas                               comentarios_musicas[]
+  comentarios_takes                                 comentarios_takes[]
+  compartilhamentos                                 compartilhamentos[]
+  contratos_banda                                   contratos_banda[]
+  convites_convites_id_banda_enviaTobanda           convites[]               @relation("convites_id_banda_enviaTobanda")
+  convites_convites_id_banda_recebeTobanda          convites[]               @relation("convites_id_banda_recebeTobanda")
+  curtidas                                          curtidas[]
+  curtidas_takes                                    curtidas_takes[]
+  empresa_banda_relacao                             empresa_banda_relacao[]
+  eventos                                           eventos[]
+  familia_familia_id_band_solicitaTobanda           familia[]                @relation("familia_id_band_solicitaTobanda")
+  familia_familia_id_bandaTobanda                   familia[]                @relation("familia_id_bandaTobanda")
+  inscricao                                         inscricao[]
+  integrantes_banda                                 integrantes_banda[]
+  musicas_musicas_id_bandaTobanda                   musicas[]                @relation("musicas_id_bandaTobanda")
+  musicas_plays                                     musicas_plays[]
+  parceiros_banda                                   parceiros_banda[]
+  postagens_postagens_id_banda_compartilhadaTobanda postagens[]              @relation("postagens_id_banda_compartilhadaTobanda")
+  postagens_postagens_id_bandaTobanda               postagens[]              @relation("postagens_id_bandaTobanda")
+  recomendacoes_musicas                             recomendacoes_musicas[]
+  redes_sociais                                     redes_sociais[]
+  takes                                             takes[]
+  videos                                            videos[]
+  videosvod                                         videosvod[]
+  visitas_banda                                     visitas_banda[]
+  visualizacoes_takes                               visualizacoes_takes[]
+}
+
+model banda_genero {
+  id_banda    Int
+  id_genero   Int
+  created_at  DateTime?   @default(now()) @db.Timestamp(6)
+  banda       banda       @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  genero_rock genero_rock @relation(fields: [id_genero], references: [id_genero], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_banda, id_genero])
+}
+
+model categoria_empresa {
+  id_categoria         Int                    @id @default(autoincrement())
+  nome_categoria       String                 @unique @db.VarChar(100)
+  descricao            String?
+  icone                String?                @db.VarChar(10)
+  ativo                Boolean?               @default(true)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  subcategoria_empresa subcategoria_empresa[]
+}
+
+model categorias_takes {
+  nome_categoria  String  @id @db.VarChar(50)
+  rotulo_exibicao String  @db.VarChar(100)
+  descricao_curta String
+  descricao_uso   String?
+  icone_emoji     String? @db.VarChar(10)
+  icone_nome      String? @db.VarChar(50)
+}
+
+model celular_update {
+  update_id             Int       @id @default(autoincrement())
+  auth_id               Int       @unique(map: "celular_update_auth_id_unique")
+  phone                 String    @db.VarChar(15)
+  sms_verification_code String    @db.VarChar(6)
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  auth                  auth      @relation(fields: [auth_id], references: [auth_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model comentarios {
+  id_comentario  Int             @id @default(autoincrement())
+  id_postagem    Int?
+  id_usuario     Int?
+  id_banda       Int?
+  data_hora      DateTime        @db.Timestamp(6)
+  texto          String
+  id_empresa     Int?
+  deleted_at     DateTime?       @db.Timestamp(6)
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  postagens      postagens?      @relation(fields: [id_postagem], references: [id_postagem], onDelete: Cascade, onUpdate: NoAction)
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  empresa        empresa?        @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction, map: "fk_comentarios_empresa")
+
+  @@index([id_empresa], map: "idx_comentarios_empresa")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model comentarios_bloqueados {
+  id_bloqueado   Int             @id @default(autoincrement())
+  id_postagem    Int?
+  id_usuario     Int?
+  id_banda       Int?
+  data_hora      DateTime?       @default(now()) @db.Timestamptz(6)
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  postagens      postagens?      @relation(fields: [id_postagem], references: [id_postagem], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id_postagem, id_usuario, id_banda])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model comentarios_musicas {
+  id_comentario  Int             @id @default(autoincrement())
+  id_musica      Int
+  id_usuario     Int?
+  id_banda       Int?
+  comentario     String
+  data_hora      DateTime        @default(now()) @db.Timestamp(6)
+  status         String?         @default("ativo") @db.VarChar(20)
+  id_empresa     Int?
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: Cascade, onUpdate: NoAction, map: "fk_comentario_banda")
+  musicas        musicas         @relation(fields: [id_musica], references: [id_musica], onDelete: Cascade, onUpdate: NoAction, map: "fk_comentario_musica")
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction, map: "fk_comentario_usuario")
+  empresa        empresa?        @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction, map: "fk_comentarios_musicas_empresa")
+
+  @@index([id_banda], map: "idx_comentarios_banda")
+  @@index([data_hora(sort: Desc)], map: "idx_comentarios_data")
+  @@index([id_musica], map: "idx_comentarios_musica")
+  @@index([id_empresa], map: "idx_comentarios_musicas_empresa")
+  @@index([status], map: "idx_comentarios_status")
+  @@index([id_usuario], map: "idx_comentarios_usuario")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model comentarios_takes {
+  id_comentario           Int                 @id @default(autoincrement())
+  id_take                 Int
+  id_usuario              Int?
+  id_banda                Int?
+  id_empresa              Int?
+  comentario              String
+  data_hora               DateTime?           @default(now()) @db.Timestamp(6)
+  status                  String?             @default("ativo") @db.VarChar(20)
+  id_comentario_pai       Int?
+  banda                   banda?              @relation(fields: [id_banda], references: [id_banda], onDelete: Cascade, onUpdate: NoAction)
+  comentarios_takes       comentarios_takes?  @relation("comentarios_takesTocomentarios_takes", fields: [id_comentario_pai], references: [id_comentario], onDelete: Cascade, onUpdate: NoAction)
+  other_comentarios_takes comentarios_takes[] @relation("comentarios_takesTocomentarios_takes")
+  empresa                 empresa?            @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+  takes                   takes               @relation(fields: [id_take], references: [id_take], onDelete: Cascade, onUpdate: NoAction)
+  tabela_usuario          tabela_usuario?     @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+  notificacoes            notificacoes[]      @ignore
+
+  @@index([id_take], map: "idx_comentarios_takes_id_take")
+  @@index([id_comentario_pai], map: "idx_comentarios_takes_pai")
+  @@index([status], map: "idx_comentarios_takes_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model compartilhamentos {
+  id_compartilhamento Int             @id @default(autoincrement())
+  id_postagem         Int?
+  id_usuario          Int?
+  id_banda            Int?
+  data_hora           DateTime        @db.Timestamp(6)
+  id_album            Int?
+  id_musica           Int?
+  banda               banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  postagens           postagens?      @relation(fields: [id_postagem], references: [id_postagem], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario      tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model contratos_banda {
+  id              Int       @id @default(autoincrement())
+  id_banda        Int
+  tipo_contrato   String    @db.VarChar(50)
+  aceito          Boolean   @default(false)
+  data_aceitacao  DateTime? @db.Timestamp(6)
+  versao_contrato String?   @db.VarChar(20)
+  banda           banda     @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id_banda, tipo_contrato], map: "uq_contratos_banda_id_tipo")
+  @@index([id_banda], map: "idx_contratos_banda_id_banda")
+  @@index([tipo_contrato], map: "idx_contratos_banda_tipo_contrato")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model conversas {
+  id_conversa                Int         @id @default(autoincrement())
+  id_participante1           Int?
+  id_participante2           Int?
+  ultima_mensagem            DateTime?   @db.Timestamp(6)
+  tipo_participante1         String?     @db.VarChar(10)
+  tipo_participante2         String?     @db.VarChar(10)
+  id_excluido_por_1          Int?
+  tipo_excluido_por_1        String?     @db.VarChar(10)
+  id_excluido_por_2          Int?
+  tipo_excluido_por_2        String?     @db.VarChar(10)
+  excluida_por_participante1 Boolean?    @default(false)
+  excluida_por_participante2 Boolean?    @default(false)
+  criada_em                  DateTime?   @default(now()) @db.Timestamp(6)
+  mensagens                  mensagens[]
+
+  @@index([id_participante1], map: "idx_participante1")
+  @@index([id_participante2], map: "idx_participante2")
+}
+
+model convites {
+  id_convite                                                Int             @id @default(autoincrement())
+  id_usuario_envia                                          Int?
+  id_banda_envia                                            Int?
+  id_usuario_recebe                                         Int?
+  id_banda_recebe                                           Int?
+  status                                                    String          @default("pendente") @db.VarChar(50)
+  enviado_em                                                DateTime?       @default(now()) @db.Timestamptz(6)
+  atualizado_em                                             DateTime?       @db.Timestamptz(6)
+  banda_convites_id_banda_enviaTobanda                      banda?          @relation("convites_id_banda_enviaTobanda", fields: [id_banda_envia], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  banda_convites_id_banda_recebeTobanda                     banda?          @relation("convites_id_banda_recebeTobanda", fields: [id_banda_recebe], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario_convites_id_usuario_enviaTotabela_usuario  tabela_usuario? @relation("convites_id_usuario_enviaTotabela_usuario", fields: [id_usuario_envia], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario_convites_id_usuario_recebeTotabela_usuario tabela_usuario? @relation("convites_id_usuario_recebeTotabela_usuario", fields: [id_usuario_recebe], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  notificacoes                                              notificacoes[]  @ignore
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model curtidas {
+  id_curtida     Int             @id @default(autoincrement())
+  id_postagem    Int?
+  id_usuario     Int?
+  id_banda       Int?
+  data_hora      DateTime        @db.Timestamp(6)
+  id_album       Int?
+  id_musica      Int?
+  id_empresa     Int?
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  empresa        empresa?        @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction, map: "fk_curtidas_empresa")
+  postagens      postagens?      @relation(fields: [id_postagem], references: [id_postagem], onDelete: Cascade, onUpdate: NoAction, map: "fk_curtidas_postagem")
+
+  @@unique([id_postagem, id_usuario, id_banda])
+  @@unique([id_postagem, id_usuario], map: "unique_user_post_like")
+  @@index([id_empresa], map: "idx_curtidas_empresa")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model curtidas_takes {
+  id_curtida     Int             @id @default(autoincrement())
+  id_take        Int
+  id_usuario     Int?
+  id_banda       Int?
+  id_empresa     Int?
+  data_hora      DateTime?       @default(now()) @db.Timestamp(6)
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: Cascade, onUpdate: NoAction)
+  empresa        empresa?        @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+  takes          takes           @relation(fields: [id_take], references: [id_take], onDelete: Cascade, onUpdate: NoAction)
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+  notificacoes   notificacoes[]  @ignore
+
+  @@index([id_take], map: "idx_curtidas_takes_id_take")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model denuncias {
+  id_denuncia        Int       @id @default(autoincrement())
+  id_denunciante     Int
+  reported_item_id   Int
+  reported_item_type String    @db.VarChar(50)
+  razao              String    @db.VarChar(100)
+  descricao          String?
+  status             String?   @default("pendente") @db.VarChar(20)
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+  tipo_denunciante   String    @db.VarChar(10)
+  admin_id           Int?
+
+  @@index([created_at], map: "idx_denuncias_created_at")
+  @@index([id_denunciante, tipo_denunciante], map: "idx_denuncias_denunciante")
+  @@index([reported_item_type, reported_item_id], map: "idx_denuncias_reported_item")
+  @@index([status], map: "idx_denuncias_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa {
+  id_empresa                  Int                           @id @default(autoincrement())
+  auth_id                     Int                           @unique
+  nome_empresa                String                        @db.VarChar(255)
+  cnpj                        String?                       @unique @db.VarChar(18)
+  nome_responsavel            String?                       @db.VarChar(100)
+  sobrenome_responsavel       String?                       @db.VarChar(100)
+  cargo_responsavel           String?                       @db.VarChar(100)
+  descricao                   String?
+  cidade                      String?                       @db.VarChar(100)
+  estado                      String?                       @db.Char(2)
+  endereco                    String?                       @db.VarChar(255)
+  telefone                    String?                       @db.VarChar(20)
+  whatsapp                    String?                       @db.VarChar(20)
+  email_contato               String?                       @db.VarChar(255)
+  website                     String?                       @db.VarChar(255)
+  url_icone_empresa           String?                       @db.VarChar(500)
+  url_capa_empresa            String?                       @db.VarChar(500)
+  sluge                       String?                       @unique @db.VarChar(255)
+  created_at                  DateTime?                     @default(now()) @db.Timestamp(6)
+  updated_at                  DateTime?                     @default(now()) @db.Timestamp(6)
+  categoria_principal         String?                       @db.VarChar(100)
+  ajuda                       ajuda[]
+  comentarios                 comentarios[]
+  comentarios_musicas         comentarios_musicas[]
+  comentarios_takes           comentarios_takes[]
+  curtidas                    curtidas[]
+  curtidas_takes              curtidas_takes[]
+  auth                        auth                          @relation(fields: [auth_id], references: [auth_id], onDelete: Cascade, onUpdate: NoAction)
+  empresa_agenda              empresa_agenda[]
+  empresa_banda_relacao       empresa_banda_relacao[]
+  empresa_eventos             empresa_eventos[]
+  empresa_links               empresa_links[]
+  empresa_midia               empresa_midia[]
+  empresa_seguidores          empresa_seguidores[]
+  empresa_servicos            empresa_servicos[]
+  empresa_subcategoria        empresa_subcategoria[]
+  eventos_empresa             eventos_empresa[]
+  eventos_empresa_confirmados eventos_empresa_confirmados[]
+  postagens                   postagens[]
+  takes                       takes[]
+  videos                      videos[]
+  videosvod                   videosvod[]
+  visualizacoes_takes         visualizacoes_takes[]
+
+  @@index([auth_id], map: "idx_empresa_auth_id")
+  @@index([cidade, estado], map: "idx_empresa_cidade_estado")
+  @@index([sluge], map: "idx_empresa_sluge")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa_agenda {
+  id_agenda  Int       @id @default(autoincrement())
+  id_empresa Int
+  id_evento  Int
+  ordem      Int?      @default(0)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  empresa    empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+  eventos    eventos   @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_empresa, id_evento])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa_banda_relacao {
+  id_empresa   Int
+  id_banda     Int
+  tipo_relacao String?   @default("agenciamento") @db.VarChar(50)
+  data_inicio  DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  data_fim     DateTime? @db.Date
+  ativo        Boolean?  @default(true)
+  observacoes  String?
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+  banda        banda     @relation(fields: [id_banda], references: [id_banda], onDelete: Cascade, onUpdate: NoAction)
+  empresa      empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id_empresa, id_banda])
+  @@index([ativo], map: "idx_empresa_banda_ativo")
+  @@index([id_banda], map: "idx_empresa_banda_banda")
+  @@index([id_empresa], map: "idx_empresa_banda_empresa")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa_eventos {
+  id_evento            Int       @id @default(autoincrement())
+  id_empresa           Int
+  titulo               String    @db.VarChar(255)
+  descricao            String?
+  data_evento          DateTime? @db.Timestamp(6)
+  hora_inicio          DateTime? @db.Time(6)
+  hora_fim             DateTime? @db.Time(6)
+  recorrente           Boolean?  @default(false)
+  tipo_recorrencia     String?   @db.VarChar(50)
+  dias_semana          Int[]
+  dia_mes              Int?
+  data_fim_recorrencia DateTime? @db.Date
+  url_flyer            String?   @db.VarChar(500)
+  local_evento         String?   @db.VarChar(255)
+  preco_entrada        Decimal?  @db.Decimal(10, 2)
+  link_ingresso        String?   @db.VarChar(500)
+  status               String?   @default("ativo") @db.VarChar(20)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  updated_at           DateTime? @default(now()) @db.Timestamp(6)
+  empresa              empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([data_evento], map: "idx_empresa_eventos_data")
+  @@index([id_empresa], map: "idx_empresa_eventos_empresa")
+  @@index([status], map: "idx_empresa_eventos_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa_links {
+  id_link    Int       @id @default(autoincrement())
+  id_empresa Int
+  tipo_link  String    @db.VarChar(50)
+  url        String    @db.VarChar(500)
+  ordem      Int?      @default(0)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  empresa    empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_empresa], map: "idx_empresa_links_empresa")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa_midia {
+  id_midia   Int       @id @default(autoincrement())
+  id_empresa Int
+  tipo_midia String    @db.VarChar(20)
+  url        String    @db.VarChar(500)
+  titulo     String?   @db.VarChar(255)
+  descricao  String?
+  ordem      Int?      @default(0)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  empresa    empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_empresa], map: "idx_empresa_midia_empresa")
+  @@index([tipo_midia], map: "idx_empresa_midia_tipo")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa_seguidores {
+  id_empresa          Int
+  id_usuario          Int
+  data_seguiu         DateTime?      @default(now()) @db.Timestamp(6)
+  notificacoes_ativas Boolean?       @default(true)
+  empresa             empresa        @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+  tabela_usuario      tabela_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([id_empresa, id_usuario])
+  @@index([id_empresa], map: "idx_empresa_seguidores_empresa")
+  @@index([id_usuario], map: "idx_empresa_seguidores_usuario")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model empresa_servicos {
+  id_servico        Int       @id @default(autoincrement())
+  id_empresa        Int
+  nome_servico      String    @db.VarChar(255)
+  descricao_servico String?
+  preco_base        Decimal?  @db.Decimal(10, 2)
+  unidade_preco     String?   @db.VarChar(50)
+  disponivel        Boolean?  @default(true)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  empresa           empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_empresa], map: "idx_empresa_servicos_empresa")
+}
+
+model empresa_subcategoria {
+  id_empresa_subcategoria Int                  @id @default(autoincrement())
+  id_empresa              Int
+  id_subcategoria         Int
+  created_at              DateTime?            @default(now()) @db.Timestamp(6)
+  empresa                 empresa              @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+  subcategoria_empresa    subcategoria_empresa @relation(fields: [id_subcategoria], references: [id_subcategoria], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_empresa, id_subcategoria])
+  @@index([id_empresa], map: "idx_empresa_subcategoria_empresa")
+  @@index([id_subcategoria], map: "idx_empresa_subcategoria_sub")
+}
+
+model estados {
+  codigo_uf  Int          @id
+  uf         String       @db.VarChar(2)
+  nome       String       @db.VarChar(100)
+  latitude   Float        @db.Real
+  longitude  Float        @db.Real
+  regiao     String       @db.VarChar(12)
+  municipios municipios[]
+}
+
+model eventos {
+  id_evento         Int               @id(map: "agenda_pkey") @default(autoincrement())
+  id_banda          Int
+  nome_evento       String            @db.VarChar(255)
+  data_evento       DateTime          @db.Date
+  local_evento      String            @db.VarChar(255)
+  cidade            String            @db.VarChar(100)
+  estado            String            @db.VarChar(255)
+  descricao         String?
+  url_imagem_evento String?
+  created_at        DateTime?         @default(now()) @db.Timestamp(6)
+  empresa_agenda    empresa_agenda[]
+  banda             banda             @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction, map: "agenda_id_banda_fkey")
+  eventos_usuario   eventos_usuario[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model eventos_empresa {
+  id_evento           Int       @id @default(autoincrement())
+  id_empresa          Int
+  nome_evento         String    @db.VarChar(255)
+  evento_slug         String?   @db.VarChar(255)
+  data_inicio         DateTime? @db.Date
+  horario_inicio      DateTime? @db.Time(6)
+  data_fim            DateTime? @db.Date
+  horario_fim         DateTime? @db.Time(6)
+  local_evento        String?   @db.VarChar(255)
+  cidade              String?   @db.VarChar(100)
+  estado              String?   @db.Char(2)
+  descricao           String?
+  url_imagem_destaque String?   @db.VarChar(500)
+  visualizacoes       Int?      @default(0)
+  created_at          DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime? @default(now()) @db.Timestamptz(6)
+  data_evento         DateTime  @db.Date
+  empresa             empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([data_evento], map: "idx_eventos_empresa_data_evento")
+  @@index([data_inicio], map: "idx_eventos_empresa_data_inicio")
+  @@index([id_empresa], map: "idx_eventos_empresa_id_empresa")
+  @@index([evento_slug], map: "idx_eventos_empresa_slug")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model eventos_empresa_confirmados {
+  id          Int       @id @default(autoincrement())
+  id_empresa  Int
+  id_evento   Int
+  tipo_evento String    @db.VarChar(10)
+  publico     Boolean?  @default(true)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  empresa     empresa   @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_empresa, id_evento, tipo_evento])
+  @@index([id_empresa, tipo_evento, id_evento], map: "idx_eventos_empresa_confirmados_composto")
+  @@index([id_empresa], map: "idx_eventos_empresa_confirmados_empresa")
+  @@index([id_evento], map: "idx_eventos_empresa_confirmados_evento")
+  @@index([tipo_evento], map: "idx_eventos_empresa_confirmados_tipo")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model eventos_usuario {
+  id             Int            @id @default(autoincrement())
+  id_usuario     Int
+  id_evento      Int
+  publico        Boolean        @default(true)
+  data_registro  DateTime       @default(now()) @db.Timestamp(6)
+  tipo_evento    String         @default("banda") @db.VarChar(10)
+  eventos        eventos        @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade, onUpdate: NoAction)
+  tabela_usuario tabela_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_usuario, tipo_evento, id_evento], map: "idx_eventos_usuario_tipo_evento")
+}
+
+model familia {
+  id_familia                            BigInt          @id @default(autoincrement())
+  id_banda                              Int
+  data_inicio_familia                   DateTime?       @default(now()) @db.Timestamp(6)
+  id_band_solicita                      Int?
+  id_usu_solicita                       Int?
+  banda_familia_id_band_solicitaTobanda banda?          @relation("familia_id_band_solicitaTobanda", fields: [id_band_solicita], references: [id_banda], onDelete: Cascade, map: "fk_familia_band_solicita")
+  banda_familia_id_bandaTobanda         banda           @relation("familia_id_bandaTobanda", fields: [id_banda], references: [id_banda], onDelete: Cascade, map: "fk_familia_banda")
+  tabela_usuario                        tabela_usuario? @relation(fields: [id_usu_solicita], references: [id_usuario], onDelete: Cascade, map: "fk_familia_usu_solicita")
+}
+
+model foto {
+  id_foto         Int         @id @default(autoincrement())
+  id_album_foto   Int
+  caminho_arquivo String      @db.VarChar(255)
+  titulo          String?     @db.VarChar(100)
+  descricao       String?
+  data_upload     DateTime?   @default(now()) @db.Timestamp(6)
+  legenda         String?
+  deleted_at      DateTime?   @db.Timestamp(6)
+  albuns_foto     albuns_foto @relation(fields: [id_album_foto], references: [id_album_foto], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model genero_rock {
+  id_genero      Int              @id(map: "genero_pkey") @default(autoincrement())
+  nome_genero    String           @unique(map: "genero_nome_genero_key") @db.VarChar(50)
+  banda_genero   banda_genero[]
+  postagens      postagens[]
+  subgenero      subgenero[]
+  usuario_genero usuario_genero[]
+}
+
+model inscricao {
+  id_inscricao      Int            @id @default(autoincrement())
+  id_inscritor      Int
+  tipo_inscritor    String         @db.VarChar(20)
+  id_inscrito_banda Int
+  data_inscricao    DateTime?      @default(now()) @db.Timestamp(6)
+  banda             banda          @relation(fields: [id_inscrito_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  notificacoes      notificacoes[] @ignore
+
+  @@unique([id_inscritor, tipo_inscritor, id_inscrito_banda])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model inscricao_empresa {
+  id_inscricao_empresa Int                    @id @default(autoincrement())
+  id_inscritor         Int
+  tipo_inscritor       String                 @db.VarChar(20)
+  id_inscrito_empresa  Int
+  data_inscricao       DateTime?              @default(now()) @db.Timestamp(6)
+  notificacoes         notificacoes[]         @ignore
+  notificacoes_empresa notificacoes_empresa[]
+
+  @@unique([id_inscritor, tipo_inscritor, id_inscrito_empresa])
+  @@index([id_inscrito_empresa], map: "idx_inscricao_empresa_inscrito")
+  @@index([id_inscritor, tipo_inscritor], map: "idx_inscricao_empresa_inscritor")
+}
+
+model integrantes_banda {
+  id_integrante  Int            @id @default(autoincrement())
+  id_banda       Int
+  id_usuario     Int
+  funcao         String?        @db.VarChar(255)
+  banda          banda          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario tabela_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model mensagens {
+  id_mensagem       Int       @id @default(autoincrement())
+  id_conversa       Int
+  id_remetente      Int
+  tipo_remetente    String    @db.VarChar(10)
+  id_destinatario   Int
+  tipo_destinatario String    @db.VarChar(10)
+  mensagem          String
+  data_hora         DateTime? @default(now()) @db.Timestamp(6)
+  lida              Boolean?  @default(false)
+  editada           Boolean?  @default(false)
+  excluida          Boolean?  @default(false)
+  conversas         conversas @relation(fields: [id_conversa], references: [id_conversa], onDelete: Cascade, onUpdate: NoAction, map: "fk_mensagens_conversa")
+
+  @@index([id_conversa], map: "idx_mensagens_conversa")
+  @@index([data_hora(sort: Desc)], map: "idx_mensagens_data_hora")
+  @@index([id_destinatario, tipo_destinatario], map: "idx_mensagens_destinatario")
+  @@index([id_remetente, tipo_remetente], map: "idx_mensagens_remetente")
+}
+
+model municipios {
+  codigo_ibge  Int     @id
+  nome         String  @db.VarChar(100)
+  latitude     Float   @db.Real
+  longitude    Float   @db.Real
+  capital      Boolean
+  codigo_uf    Int
+  siafi_id     String  @unique @db.VarChar(4)
+  ddd          Int
+  fuso_horario String  @db.VarChar(32)
+  estados      estados @relation(fields: [codigo_uf], references: [codigo_uf], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model musicas {
+  id_musica                                   Int                     @id @default(autoincrement())
+  id_banda                                    Int
+  id_album                                    Int
+  nome_musica                                 String                  @db.VarChar(255)
+  compositor                                  String?                 @db.VarChar(255)
+  ano_lancamento                              Int?
+  url_musica                                  String                  @db.VarChar(2048)
+  url_imagem                                  String                  @db.VarChar(2048)
+  duracao                                     String?                 @db.VarChar(10)
+  data_adicao                                 DateTime?               @default(now()) @db.Timestamp(6)
+  letra                                       String?
+  status                                      String                  @default("pendente") @db.VarChar(20)
+  status_processamento                        String?                 @default("processando") @db.VarChar(20)
+  erro_detalhes                               String?
+  duracao_original                            Float?
+  duracao_final                               Float?
+  data_processamento                          DateTime?               @default(now()) @db.Timestamp(6)
+  deleted_at                                  DateTime?               @db.Timestamp(6)
+  banda_banda_id_musica_apresentacaoTomusicas banda[]                 @relation("banda_id_musica_apresentacaoTomusicas")
+  comentarios_musicas                         comentarios_musicas[]
+  albuns                                      albuns                  @relation(fields: [id_album], references: [id_album], onDelete: NoAction, onUpdate: NoAction)
+  banda_musicas_id_bandaTobanda               banda                   @relation("musicas_id_bandaTobanda", fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  musicas_plays                               musicas_plays[]
+  playlist_musicas                            playlist_musicas[]
+  postagens                                   postagens[]
+  ranking_snapshots                           ranking_snapshots[]
+  recomendacoes_musicas                       recomendacoes_musicas[]
+  reproducoes                                 reproducoes[]
+
+  @@index([data_processamento], map: "idx_musicas_data_processamento")
+  @@index([status_processamento], map: "idx_musicas_status_processamento")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model musicas_plays {
+  id             Int             @id @default(autoincrement())
+  id_musica      Int
+  id_usuario     Int?
+  id_banda       Int?
+  ip_address     String?
+  user_agent     String?
+  created_at     DateTime?       @default(now()) @db.Timestamptz(6)
+  id_empresa     Int?
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  musicas        musicas         @relation(fields: [id_musica], references: [id_musica], onDelete: Cascade, onUpdate: NoAction)
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_banda], map: "idx_musicas_plays_id_banda")
+  @@index([id_musica], map: "idx_musicas_plays_id_musica")
+  @@index([id_usuario], map: "idx_musicas_plays_id_usuario")
+  @@index([ip_address, created_at], map: "idx_musicas_plays_ip_timestamp")
+}
+
+model nome_redes {
+  id_rede_social Int             @id @default(autoincrement())
+  nome           String          @db.VarChar(255)
+  icone          String?         @db.VarChar(255)
+  ativo          Boolean?        @default(true)
+  redes_sociais  redes_sociais[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model notificacoes {
+  id_notificacao       Int                @default(autoincrement())
+  id_usuario           Int?
+  id_banda             Int?
+  tipo_notificacao     String?            @db.VarChar(50)
+  id_postagem          Int?
+  id_curtida           Int?
+  id_conversa          Int?
+  status               String?            @default("não lida") @db.VarChar(20)
+  data_hora            DateTime?          @default(now()) @db.Timestamp(6)
+  mensagem             String?
+  id_musica            Int?
+  id_inscricao         Int?
+  id_amigo             Int?
+  id_familia           Int?
+  id_convite           Int?
+  id_empresa           Int?
+  id_inscricao_empresa Int?
+  id_take              Int?
+  id_curtida_take      Int?
+  id_comentario_take   Int?
+  comentarios_takes    comentarios_takes? @relation(fields: [id_comentario_take], references: [id_comentario], onDelete: Cascade, onUpdate: NoAction)
+  convites             convites?          @relation(fields: [id_convite], references: [id_convite], onDelete: NoAction, onUpdate: NoAction)
+  curtidas_takes       curtidas_takes?    @relation(fields: [id_curtida_take], references: [id_curtida], onDelete: Cascade, onUpdate: NoAction)
+  inscricao_empresa    inscricao_empresa? @relation(fields: [id_inscricao_empresa], references: [id_inscricao_empresa], onDelete: Cascade, onUpdate: NoAction)
+  inscricao            inscricao?         @relation(fields: [id_inscricao], references: [id_inscricao], onDelete: NoAction, onUpdate: NoAction)
+  takes                takes?             @relation(fields: [id_take], references: [id_take], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_comentario_take], map: "idx_notificacoes_comentario_take")
+  @@index([id_curtida_take], map: "idx_notificacoes_curtida_take")
+  @@index([id_empresa], map: "idx_notificacoes_empresa")
+  @@index([id_inscricao_empresa], map: "idx_notificacoes_inscricao_empresa")
+  @@index([id_take], map: "idx_notificacoes_take")
+  @@ignore
+}
+
+model notificacoes_empresa {
+  id_notificacao_empresa Int                @id @default(autoincrement())
+  id_inscricao_empresa   Int?
+  id_empresa             Int
+  tipo_notificacao       String             @db.VarChar(50)
+  mensagem               String?
+  lida                   Boolean?           @default(false)
+  data_criacao           DateTime?          @default(now()) @db.Timestamp(6)
+  inscricao_empresa      inscricao_empresa? @relation(fields: [id_inscricao_empresa], references: [id_inscricao_empresa], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_empresa], map: "idx_notificacoes_empresa_empresa")
+  @@index([id_inscricao_empresa], map: "idx_notificacoes_empresa_inscricao")
+  @@index([lida], map: "idx_notificacoes_empresa_lida")
+}
+
+model parceiros_banda {
+  id_parceiro        Int     @id @default(autoincrement())
+  id_banda           Int
+  nome_parceiro      String  @db.VarChar(255)
+  url_logo_parceiro  String? @db.VarChar(255)
+  descricao_parceiro String?
+  banda              banda   @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model playlist_musicas {
+  id_playlist_musica Int       @id @default(autoincrement())
+  id_playlist        Int
+  id_musica          Int
+  data_adicao        DateTime? @default(now()) @db.Timestamp(6)
+  musicas            musicas   @relation(fields: [id_musica], references: [id_musica], onDelete: NoAction, onUpdate: NoAction)
+  playlists          playlists @relation(fields: [id_playlist], references: [id_playlist], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model playlists {
+  id_playlist         Int                   @id @default(autoincrement())
+  id_usuario          Int
+  nome                String                @db.VarChar(255)
+  autor               String?               @db.VarChar(255)
+  data                DateTime?             @db.Date
+  descricao           String?
+  publica             Boolean?              @default(true)
+  playlist_musicas    playlist_musicas[]
+  tabela_usuario      tabela_usuario        @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  playlists_favoritas playlists_favoritas[]
+}
+
+model playlists_favoritas {
+  id_playlist_favorita Int             @id @default(autoincrement())
+  id_usuario           Int?
+  id_playlist          Int?
+  data_hora            DateTime?       @db.Timestamp(6)
+  playlists            playlists?      @relation(fields: [id_playlist], references: [id_playlist], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario       tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model postagem_videos {
+  id_postagem_video                                      Int         @id @default(autoincrement())
+  id_postagem                                            Int?        @unique(map: "unique_video_per_post")
+  tipo_video                                             String      @db.VarChar(20)
+  titulo_video                                           String      @db.VarChar(255)
+  descricao                                              String?
+  url_video                                              String      @db.VarChar(512)
+  url_thumbnail                                          String?     @db.VarChar(512)
+  status                                                 String      @default("processando") @db.VarChar(20)
+  duracao                                                Int?
+  data_upload                                            DateTime?   @default(now()) @db.Timestamp(6)
+  atualizado_em                                          DateTime?   @default(now()) @db.Timestamp(6)
+  deleted_at                                             DateTime?   @db.Timestamp(6)
+  postagens_postagem_videos_id_postagemTopostagens       postagens?  @relation("postagem_videos_id_postagemTopostagens", fields: [id_postagem], references: [id_postagem], onDelete: Cascade, onUpdate: NoAction)
+  postagens_postagens_id_postagem_videoTopostagem_videos postagens[] @relation("postagens_id_postagem_videoTopostagem_videos")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model postagens {
+  id_postagem                                                  Int                      @id @default(autoincrement())
+  id_usuario                                                   Int?
+  id_banda                                                     Int?
+  id_genero                                                    Int?
+  data_hora                                                    DateTime?                @db.Timestamp(6)
+  conteudo                                                     String
+  comentarios_ativados                                         Boolean                  @default(true)
+  id_musica                                                    Int?
+  id_album                                                     Int?
+  id_banda_compartilhada                                       Int?
+  image_url                                                    String?
+  video_url                                                    String?
+  link_url                                                     String?
+  data_edicao                                                  DateTime?                @db.Timestamptz(6)
+  link_titulo                                                  String?
+  link_descricao                                               String?
+  link_imagem                                                  String?
+  id_postagem_video                                            Int?
+  id_empresa                                                   Int?
+  deleted_at                                                   DateTime?                @db.Timestamp(6)
+  comentarios                                                  comentarios[]
+  comentarios_bloqueados                                       comentarios_bloqueados[]
+  compartilhamentos                                            compartilhamentos[]
+  curtidas                                                     curtidas[]
+  postagem_videos_postagem_videos_id_postagemTopostagens       postagem_videos?         @relation("postagem_videos_id_postagemTopostagens")
+  empresa                                                      empresa?                 @relation(fields: [id_empresa], references: [id_empresa], onDelete: Cascade, onUpdate: NoAction, map: "fk_postagens_empresa")
+  albuns                                                       albuns?                  @relation(fields: [id_album], references: [id_album], onDelete: NoAction, onUpdate: NoAction)
+  banda_postagens_id_banda_compartilhadaTobanda                banda?                   @relation("postagens_id_banda_compartilhadaTobanda", fields: [id_banda_compartilhada], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  banda_postagens_id_bandaTobanda                              banda?                   @relation("postagens_id_bandaTobanda", fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  genero_rock                                                  genero_rock?             @relation(fields: [id_genero], references: [id_genero], onDelete: NoAction, onUpdate: NoAction)
+  musicas                                                      musicas?                 @relation(fields: [id_musica], references: [id_musica], onDelete: NoAction, onUpdate: NoAction)
+  postagem_videos_postagens_id_postagem_videoTopostagem_videos postagem_videos?         @relation("postagens_id_postagem_videoTopostagem_videos", fields: [id_postagem_video], references: [id_postagem_video], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario                                               tabela_usuario?          @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_empresa], map: "idx_postagens_empresa")
+}
+
+model ranking_snapshots {
+  id            Int       @id @default(autoincrement())
+  id_musica     Int
+  posicao       Int
+  total_plays   Int
+  snapshot_date DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  musicas       musicas   @relation(fields: [id_musica], references: [id_musica], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_musica, snapshot_date])
+  @@index([snapshot_date], map: "idx_ranking_snapshots_date")
+  @@index([id_musica], map: "idx_ranking_snapshots_musica")
+  @@index([posicao], map: "idx_ranking_snapshots_posicao")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model recomendacoes_musicas {
+  id_recomendacao_musica Int             @id @default(autoincrement())
+  id_usuario             Int?
+  id_banda               Int?
+  id_musica              Int
+  banda                  banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  musicas                musicas         @relation(fields: [id_musica], references: [id_musica], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario         tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model redes_sociais {
+  id_rede            Int         @id @default(autoincrement())
+  id_banda           Int
+  url                String      @db.VarChar(255)
+  ativo              Boolean?    @default(true)
+  data_criacao       DateTime?   @default(now()) @db.Timestamptz(6)
+  ultima_atualizacao DateTime?   @default(now()) @db.Timestamptz(6)
+  id_rede_social     Int?
+  banda              banda       @relation(fields: [id_banda], references: [id_banda], onDelete: Cascade, onUpdate: NoAction, map: "fk_banda")
+  nome_redes         nome_redes? @relation(fields: [id_rede_social], references: [id_rede_social], onDelete: NoAction, onUpdate: NoAction, map: "fk_id_rede_social")
+}
+
+model reproducoes {
+  id_reproducao  Int             @id @default(autoincrement())
+  id_musica      Int?
+  id_usuario     Int?
+  data_hora      DateTime?       @db.Timestamp(6)
+  musicas        musicas?        @relation(fields: [id_musica], references: [id_musica], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model subcategoria_empresa {
+  id_subcategoria      Int                    @id @default(autoincrement())
+  id_categoria         Int
+  nome_subcategoria    String                 @db.VarChar(100)
+  codigo_subcategoria  String                 @unique @db.VarChar(100)
+  descricao            String?
+  ativo                Boolean?               @default(true)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  empresa_subcategoria empresa_subcategoria[]
+  categoria_empresa    categoria_empresa      @relation(fields: [id_categoria], references: [id_categoria], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([id_categoria], map: "idx_subcategoria_categoria")
+}
+
+model subgenero {
+  id_subgenero   Int          @id @default(autoincrement())
+  nome_subgenero String       @unique @db.VarChar(255)
+  id_genero      Int?
+  genero_rock    genero_rock? @relation(fields: [id_genero], references: [id_genero], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tabela_usuario {
+  id_usuario                                          Int                      @id @default(autoincrement())
+  nome                                                String                   @db.VarChar(100)
+  sobrenome                                           String                   @db.VarChar(100)
+  descricao                                           String?
+  cidade                                              String?                  @db.VarChar(100)
+  estado                                              String?                  @db.VarChar(100)
+  telefone                                            String?                  @db.VarChar(20)
+  url_capa_usuario                                    String?
+  url_icone_usuario                                   String?
+  data_nascimento                                     DateTime?                @db.Date
+  genero_sexo                                         String?                  @db.VarChar(20)
+  auth_id                                             Int                      @unique
+  sluge                                               String?                  @unique(map: "tabela_usuario_slug_key") @db.VarChar(255)
+  genero_personalizado                                String?                  @db.VarChar(100)
+  created_at                                          DateTime?                @db.Timestamp(6)
+  ajuda                                               ajuda[]
+  albuns_estante                                      albuns_estante[]
+  comentarios                                         comentarios[]
+  comentarios_bloqueados                              comentarios_bloqueados[]
+  comentarios_musicas                                 comentarios_musicas[]
+  comentarios_takes                                   comentarios_takes[]
+  compartilhamentos                                   compartilhamentos[]
+  convites_convites_id_usuario_enviaTotabela_usuario  convites[]               @relation("convites_id_usuario_enviaTotabela_usuario")
+  convites_convites_id_usuario_recebeTotabela_usuario convites[]               @relation("convites_id_usuario_recebeTotabela_usuario")
+  curtidas                                            curtidas[]
+  curtidas_takes                                      curtidas_takes[]
+  empresa_seguidores                                  empresa_seguidores[]
+  eventos_usuario                                     eventos_usuario[]
+  familia                                             familia[]
+  integrantes_banda                                   integrantes_banda[]
+  musicas_plays                                       musicas_plays[]
+  playlists                                           playlists[]
+  playlists_favoritas                                 playlists_favoritas[]
+  postagens                                           postagens[]
+  recomendacoes_musicas                               recomendacoes_musicas[]
+  reproducoes                                         reproducoes[]
+  auth                                                auth                     @relation(fields: [auth_id], references: [auth_id], onDelete: NoAction, onUpdate: NoAction)
+  takes                                               takes[]
+  usuario_genero                                      usuario_genero[]
+  visitas_banda                                       visitas_banda[]
+  visualizacoes_takes                                 visualizacoes_takes[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model takes {
+  id_take             Int                   @id @default(autoincrement())
+  id_banda            Int?
+  id_usuario          Int?
+  titulo_take         String                @db.VarChar(255)
+  descricao           String?
+  url_take            String?               @db.VarChar(255)
+  url_thumbnail       String?               @db.VarChar(255)
+  data_upload         DateTime?             @default(now()) @db.Timestamp(6)
+  duracao             Int?
+  status              String?               @default("processando") @db.VarChar(50)
+  atualizado_em       DateTime?             @default(now()) @db.Timestamp(6)
+  deleted_at          DateTime?             @db.Timestamptz(6)
+  id_empresa          Int?
+  likes_count         Int?                  @default(0)
+  comments_count      Int?                  @default(0)
+  views_count         Int?                  @default(0)
+  comentarios_takes   comentarios_takes[]
+  curtidas_takes      curtidas_takes[]
+  notificacoes        notificacoes[]        @ignore
+  banda               banda?                @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  empresa             empresa?              @relation(fields: [id_empresa], references: [id_empresa], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario      tabela_usuario?       @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  visualizacoes_takes visualizacoes_takes[]
+
+  @@index([id_banda], map: "idx_takes_banda")
+  @@index([data_upload], map: "idx_takes_data")
+  @@index([status], map: "idx_takes_status")
+  @@index([id_usuario], map: "idx_takes_usuario")
+}
+
+model termos_uso {
+  id             Int      @id @default(autoincrement())
+  auth_id        Int
+  versao_termos  String   @db.VarChar(20)
+  aceito         Boolean  @default(true)
+  data_aceitacao DateTime @default(now()) @db.Timestamp(6)
+  auth           auth     @relation(fields: [auth_id], references: [auth_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([auth_id], map: "idx_termos_uso_auth_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_sessions {
+  session_id          Int       @id @default(autoincrement())
+  auth_id             Int?
+  refresh_token       String
+  device_token        String?
+  platform            String    @db.VarChar(50)
+  last_used           DateTime? @default(now()) @db.Timestamp(6)
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
+  device_brand        String?   @db.VarChar(50)
+  device_model        String?   @db.VarChar(100)
+  device_identifier   String?   @db.VarChar(50)
+  system_version      String?   @db.VarChar(20)
+  app_version         String?   @db.VarChar(20)
+  app_build           String?   @db.VarChar(20)
+  is_tablet           Boolean?  @default(false)
+  device_unique_id    String?   @db.VarChar(100)
+  device_display_name String?   @db.VarChar(150)
+  device_type         String?   @db.VarChar(20)
+  system_name         String?   @db.VarChar(20)
+  manufacturer        String?   @db.VarChar(50)
+  auth                auth?     @relation(fields: [auth_id], references: [auth_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([auth_id, platform])
+  @@index([device_brand], map: "idx_user_sessions_device_brand")
+  @@index([device_model], map: "idx_user_sessions_device_model")
+  @@index([device_type], map: "idx_user_sessions_device_type")
+  @@index([manufacturer], map: "idx_user_sessions_manufacturer")
+}
+
+model usuario_genero {
+  id_usuario     Int
+  id_genero      Int
+  created_at     DateTime?      @default(now()) @db.Timestamp(6)
+  genero_rock    genero_rock    @relation(fields: [id_genero], references: [id_genero], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario tabela_usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_usuario, id_genero])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model videos {
+  id_video    Int       @id @default(autoincrement())
+  id_banda    Int?
+  titulo      String    @db.VarChar(255)
+  descricao   String?
+  url_video   String    @db.VarChar(255)
+  data_upload DateTime  @db.Date
+  id_empresa  Int?
+  deleted_at  DateTime? @db.Timestamp(6)
+  banda       banda?    @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  empresa     empresa?  @relation(fields: [id_empresa], references: [id_empresa], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model videosvod {
+  id_videosvod     Int       @id @default(autoincrement())
+  id_banda         Int?
+  titulo_videosvod String    @db.VarChar(255)
+  descricao        String?
+  url_videosvod    String    @db.VarChar(512)
+  url_thumbnail    String?   @db.VarChar(512)
+  data_upload      DateTime? @default(now()) @db.Timestamp(6)
+  atualizado_em    DateTime? @default(now()) @db.Timestamp(6)
+  duracao          Int?
+  status           String    @default("processando") @db.VarChar(20)
+  deleted_at       DateTime? @db.Timestamptz(6)
+  id_empresa       Int?
+  banda            banda?    @relation(fields: [id_banda], references: [id_banda], onDelete: Cascade, onUpdate: NoAction, map: "fk_banda")
+  empresa          empresa?  @relation(fields: [id_empresa], references: [id_empresa], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_banda], map: "idx_videosvod_banda")
+  @@index([status], map: "idx_videosvod_status")
+}
+
+model visitas_banda {
+  id_visita      Int             @id @default(autoincrement())
+  id_banda       Int?
+  id_usuario     Int?
+  data_hora      DateTime?       @db.Timestamp(6)
+  banda          banda?          @relation(fields: [id_banda], references: [id_banda], onDelete: NoAction, onUpdate: NoAction)
+  tabela_usuario tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model visualizacoes_takes {
+  id_visualizacao   Int             @id @default(autoincrement())
+  id_take           Int
+  id_usuario        Int?
+  id_banda          Int?
+  id_empresa        Int?
+  ip_address        String?         @db.VarChar(45)
+  user_agent        String?
+  data_hora         DateTime?       @default(now()) @db.Timestamp(6)
+  duracao_assistida Int?            @default(0)
+  banda             banda?          @relation(fields: [id_banda], references: [id_banda], onUpdate: NoAction)
+  empresa           empresa?        @relation(fields: [id_empresa], references: [id_empresa], onUpdate: NoAction)
+  takes             takes           @relation(fields: [id_take], references: [id_take], onDelete: Cascade, onUpdate: NoAction)
+  tabela_usuario    tabela_usuario? @relation(fields: [id_usuario], references: [id_usuario], onUpdate: NoAction)
+
+  @@unique([id_take, id_banda], map: "unique_view_banda")
+  @@unique([id_take, id_empresa], map: "unique_view_empresa")
+  @@unique([id_take, id_usuario], map: "unique_view_usuario")
+  @@index([data_hora], map: "idx_visualizacoes_takes_data")
+  @@index([id_take], map: "idx_visualizacoes_takes_id_take")
+}
+
+enum post_status {
+  draft
+  published
+  scheduled
+}
+
+enum status_type {
+  verified
+  unverified
+}

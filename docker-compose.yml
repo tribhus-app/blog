@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tribhus_blog_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://blog.tribhus.com.br
+      - NEXT_PUBLIC_SITE_URL=https://blog.tribhus.com.br
+    networks:
+      - tribhus_blog_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tribhus_blog_backend
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - FRONTEND_URL=https://blog.tribhus.com.br
+      - MINIO_ENDPOINT=https://127.0.0.1:9000
+      - MINIO_BUCKET=blog-images
+      - MINIO_PUBLIC_URL=https://blog.tribhus.com.br/minio-images
+    volumes:
+      - ./uploads:/app/uploads
+
+networks:
+  tribhus_blog_network:
+    driver: bridge

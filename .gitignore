@@ -1,0 +1,43 @@
+# Environment
+.env
+
+# MySQL data
+mysql/data/
+
+# Node modules (para ai-service futuro)
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes (gerenciados pelo Docker)
+# Não commitamos dados de volumes
+
+# Backups
+*.sql
+*.sql.gz
+backups/
+
+# Secrets
+*.pem
+*.key
+
+# Old WordPress files
+blog tribhus/
+
+# Uploads (user-generated content)
+uploads/
+
+# RAR archives
+*.rar
