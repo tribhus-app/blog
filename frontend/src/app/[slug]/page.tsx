@@ -8,17 +8,6 @@ import ViewTracker from '@/components/posts/ViewTracker'
 import { Post } from '@/types'
 import { imagePresets } from '@/lib/imagePresets'
 
-// Calcula tempo de leitura baseado no conteudo
-function calculateReadingTime(content: string): number {
-  // Remove tags HTML
-  const text = content.replace(/<[^>]*>/g, '')
-  // Conta palavras
-  const words = text.trim().split(/\s+/).length
-  // Media de 200 palavras por minuto
-  const minutes = Math.ceil(words / 200)
-  return Math.max(1, minutes) // Minimo 1 minuto
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 async function getPost(slug: string): Promise<Post | null> {
@@ -117,8 +106,6 @@ export default async function PostPage({ params }: PageProps) {
   const category = post.category || { name: 'Sem categoria', slug: 'sem-categoria', color: '#914100' }
   const author = post.author || { name: 'Tribhus', bio: '', avatar: '' }
   const tags = post.tags || []
-  const readingTime = calculateReadingTime(post.content)
-
   return (
     <>
       {/* Tracker de visualizacoes */}
@@ -237,7 +224,7 @@ export default async function PostPage({ params }: PageProps) {
             </p>
 
             {/* Author & Stats */}
-            <div className="flex items-center justify-between flex-wrap gap-4 pb-8 border-b border-border">
+            <div className="flex items-center flex-wrap gap-4 pb-8 border-b border-border">
               <div className="flex items-center gap-3">
                 {author.avatar ? (
                   <Image
@@ -258,10 +245,6 @@ export default async function PostPage({ params }: PageProps) {
                   <p className="text-white font-medium">{author.name}</p>
                   <p className="text-text-muted text-sm">Autor</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-6 text-text-muted text-sm">
-                <span>{post.views || 0} visualizacoes</span>
-                <span>{readingTime} min de leitura</span>
               </div>
             </div>
           </div>

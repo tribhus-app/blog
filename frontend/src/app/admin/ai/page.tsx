@@ -22,7 +22,7 @@ const CATEGORY_OPTIONS = [
   { slug: 'tecnologia', name: 'Tecnologia', color: '#9C27B0' },
   { slug: 'eventos', name: 'Eventos', color: '#E91E63' },
   { slug: 'curiosidades', name: 'Curiosidades', color: '#FF9800' },
-  { slug: 'reviews', name: 'Reviews', color: '#FFC107' },
+  { slug: 'internacional', name: 'Internacional', color: '#1E88E5' },
 ]
 
 // Mensagens de progresso para o sistema Tavily

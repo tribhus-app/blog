@@ -38,8 +38,8 @@ export default function Footer() {
                 <Link href="/categoria/lancamentos" className="text-sm text-text-secondary hover:text-white transition-colors">
                   Lancamentos
                 </Link>
-                <Link href="/categoria/entrevistas" className="text-sm text-text-secondary hover:text-white transition-colors">
-                  Entrevistas
+                <Link href="/categoria/internacional" className="text-sm text-text-secondary hover:text-white transition-colors">
+                  Internacional
                 </Link>
                 <Link href="/categoria/eventos" className="text-sm text-text-secondary hover:text-white transition-colors">
                   Eventos

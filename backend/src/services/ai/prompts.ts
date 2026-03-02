@@ -78,6 +78,23 @@ RETORNE APENAS UM JSON no seguinte formato (sem texto adicional):
 `
 
 // ========================================
+// INSTRUCOES DE TAGS (usar apenas existentes)
+// ========================================
+function tagInstructions(availableTags: string[]): string {
+  if (availableTags.length === 0) return ''
+  return `
+REGRAS DE TAGS - MUITO IMPORTANTE:
+- Voce so pode usar tags que JA EXISTEM no sistema
+- NAO invente tags novas, NAO crie variacoes
+- Escolha entre 3 e 5 tags da lista abaixo que sejam relevantes ao artigo
+- Se nenhuma tag existente for relevante, use uma lista vazia []
+
+TAGS DISPONIVEIS:
+${availableTags.map(t => `- ${t}`).join('\n')}
+`
+}
+
+// ========================================
 // SYSTEM PROMPTS POR CATEGORIA
 // ========================================
 
@@ -346,7 +363,8 @@ export function getSystemPromptForCategory(category: CategoryConfig): string {
  */
 export function generateUserPrompt(
   formattedSources: string,
-  category: CategoryConfig
+  category: CategoryConfig,
+  availableTags: string[] = []
 ): string {
   return `Escreva um artigo para a categoria "${category.name}" do Blog Tribhus baseado EXCLUSIVAMENTE nas fontes abaixo.
 
@@ -355,7 +373,7 @@ LEMBRETE IMPORTANTE:
 - NAO adicione fatos, detalhes ou curiosidades que nao estao nas fontes
 - Se faltar informacao, escreva um artigo menor mas PRECISO
 - Cite a fonte principal no final do artigo
-
+${tagInstructions(availableTags)}
 ${formattedSources}
 
 Agora escreva o artigo seguindo as instrucoes. Retorne APENAS o JSON, sem texto adicional.`
@@ -394,7 +412,7 @@ ${JSON_FORMAT}`
 /**
  * Prompt com dados da banda para artigo de boas-vindas
  */
-export function welcomePrompt(band: BandData): string {
+export function welcomePrompt(band: BandData, availableTags: string[] = []): string {
   const genres = band.genres?.join(', ') || 'rock'
   const location = [band.city, band.state].filter(Boolean).join(', ') || 'Brasil'
 
@@ -430,8 +448,8 @@ REQUISITOS DO ARTIGO:
 3. Breve apresentacao baseada APENAS nos dados fornecidos acima
 4. Convite aos leitores para seguir e ouvir a banda na plataforma
 5. Conclusao otimista sobre o crescimento da cena rock brasileira
-6. Tags relevantes: nome da banda, generos, cidade/estado, "nova banda", "tribhus"
-
+6. Tags: escolha APENAS entre as tags existentes no sistema (veja abaixo)
+${tagInstructions(availableTags)}
 NAO INVENTE informacoes que nao estao nos dados acima.
 
 Lembre-se: retorne APENAS o JSON, sem texto adicional.`
@@ -456,7 +474,7 @@ export function newsSystemPrompt(category?: CategoryConfig): string {
 /**
  * @deprecated Use generateUserPrompt
  */
-export function newsPrompt(news: NewsItem, category?: CategoryConfig): string {
+export function newsPrompt(news: NewsItem, category?: CategoryConfig, availableTags: string[] = []): string {
   // Formato legado para compatibilidade
   const categoryConfig = category || {
     slug: 'noticias',
@@ -488,7 +506,7 @@ Conteudo: ${news.content || news.description}
 ${videoInfo}
 
 LEMBRETE: Use APENAS informacoes desta fonte. NAO adicione fatos externos.
-
+${tagInstructions(availableTags)}
 No final, adicione: "<p><em>Fonte: <a href='${news.link}' target='_blank' rel='noopener'>${news.source}</a></em></p>"
 
 Retorne APENAS o JSON, sem texto adicional.`

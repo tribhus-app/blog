@@ -49,6 +49,9 @@ export default function Header() {
             <Link href="/categoria/curiosidades" className="text-sm text-text-secondary hover:text-white transition-colors">
               Curiosidades
             </Link>
+            <Link href="/categoria/internacional" className="text-sm text-text-secondary hover:text-white transition-colors">
+              Internacional
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -162,6 +165,13 @@ export default function Header() {
               onClick={() => setIsMenuOpen(false)}
             >
               Curiosidades
+            </Link>
+            <Link
+              href="/categoria/internacional"
+              className="block py-3 text-text-secondary hover:text-white transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Internacional
             </Link>
             <div className="pt-4 mt-4 border-t border-border/30">
               <a

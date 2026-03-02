@@ -13,6 +13,7 @@ import searchRoutes from './routes/search'
 import adminRoutes from './routes/admin'
 import uploadRoutes from './routes/upload'
 import aiRoutes from './routes/ai'
+import appRoutes from './routes/app'
 import { initializeScheduler } from './services/cron/scheduler'
 
 dotenv.config()
@@ -57,6 +58,7 @@ app.use('/api/search', searchRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/ai', aiRoutes)
+app.use('/api/app', appRoutes)
 
 // 404 handler
 app.use((req, res) => {

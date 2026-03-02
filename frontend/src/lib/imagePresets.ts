@@ -1,20 +1,20 @@
 export const imagePresets = {
   hero: {
     sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px',
-    priority: true,
-    quality: 75,
+    priority: true as const,
+    quality: 85,
   },
   cardLarge: {
-    sizes: '(max-width: 768px) 95vw, (max-width: 1200px) 66vw, 800px',
-    quality: 60,
+    sizes: '(max-width: 1023px) 100vw, (max-width: 1280px) 66vw, 800px',
+    quality: 75,
   },
   cardDefault: {
-    sizes: '(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 384px',
-    quality: 60,
+    sizes: '(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 384px',
+    quality: 75,
   },
   cardHorizontal: {
-    sizes: '(max-width: 640px) 96px, 96px',
-    quality: 60,
+    sizes: '96px',
+    quality: 70,
   },
   thumbSmall: {
     width: 40,
@@ -23,6 +23,6 @@ export const imagePresets = {
   },
   content: {
     sizes: '(max-width: 768px) 100vw, 800px',
-    quality: 70,
+    quality: 80,
   }
 }

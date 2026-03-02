@@ -66,11 +66,11 @@ async function generateArticle(
 /**
  * Gera artigo de boas-vindas para uma nova banda
  */
-export async function generateWelcomeArticle(band: BandData): Promise<GeneratedArticle> {
+export async function generateWelcomeArticle(band: BandData, availableTags: string[] = []): Promise<GeneratedArticle> {
   console.log(`Gerando artigo de boas-vindas para banda: ${band.name}`)
 
   const systemPrompt = welcomeSystemPrompt()
-  const userPrompt = welcomePrompt(band)
+  const userPrompt = welcomePrompt(band, availableTags)
 
   return generateArticle(systemPrompt, userPrompt)
 }
@@ -78,14 +78,14 @@ export async function generateWelcomeArticle(band: BandData): Promise<GeneratedA
 /**
  * Gera artigo baseado em uma noticia
  */
-export async function generateNewsArticle(news: NewsItem, category?: CategoryConfig): Promise<GeneratedArticle> {
+export async function generateNewsArticle(news: NewsItem, category?: CategoryConfig, availableTags: string[] = []): Promise<GeneratedArticle> {
   console.log(`Gerando artigo para noticia: ${news.title}`)
   if (category) {
     console.log(`Categoria: ${category.name}`)
   }
 
   const systemPrompt = newsSystemPrompt(category)
-  const userPrompt = newsPrompt(news, category)
+  const userPrompt = newsPrompt(news, category, availableTags)
 
   return generateArticle(systemPrompt, userPrompt)
 }
@@ -103,13 +103,14 @@ export function isClaudeConfigured(): boolean {
  */
 export async function generateArticleFromEnrichedSources(
   formattedSources: string,
-  category: CategoryConfig
+  category: CategoryConfig,
+  availableTags: string[] = []
 ): Promise<GeneratedArticle> {
   console.log(`Gerando artigo para categoria: ${category.name}`)
   console.log(`Tamanho das fontes: ${formattedSources.length} caracteres`)
 
   const systemPrompt = getSystemPromptForCategory(category)
-  const userPrompt = generateUserPrompt(formattedSources, category)
+  const userPrompt = generateUserPrompt(formattedSources, category, availableTags)
 
   return generateArticle(systemPrompt, userPrompt)
 }

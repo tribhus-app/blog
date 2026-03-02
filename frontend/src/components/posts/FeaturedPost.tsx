@@ -27,6 +27,7 @@ export default function FeaturedPost({ post }: FeaturedPostProps) {
               alt={post.title}
               fill
               {...imagePresets.hero}
+              priority
               className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (

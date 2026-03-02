@@ -16,6 +16,17 @@ import {
 import { EnrichedNewsForArticle } from '../news/newsAggregator'
 
 /**
+ * Busca todas as tags existentes no banco de dados
+ */
+export async function getAvailableTagNames(): Promise<string[]> {
+  const tags = await prisma.blogTag.findMany({
+    select: { name: true },
+    orderBy: { name: 'asc' },
+  })
+  return tags.map(t => t.name)
+}
+
+/**
  * Busca ou cria o autor IA no banco de dados
  */
 export async function getAiAuthor(): Promise<{ id: string; name: string }> {
@@ -133,17 +144,20 @@ export async function saveGeneratedArticle(
     },
   })
 
-  // Adiciona as tags
+  // Adiciona as tags (apenas tags que ja existem no sistema)
   if (article.tags && article.tags.length > 0) {
     for (const tagName of article.tags) {
       const tagSlug = slugify(tagName, { lower: true, strict: true })
 
-      // Cria ou busca a tag
-      const tag = await prisma.blogTag.upsert({
+      // Busca a tag existente (NAO cria novas)
+      const tag = await prisma.blogTag.findUnique({
         where: { slug: tagSlug },
-        update: {},
-        create: { name: tagName, slug: tagSlug },
       })
+
+      if (!tag) {
+        console.log(`Tag ignorada (nao existe no sistema): "${tagName}"`)
+        continue
+      }
 
       // Associa a tag ao post
       await prisma.blogPostTag.create({
@@ -165,11 +179,14 @@ export async function generateAndSaveWelcomeArticle(band: BandData): Promise<Gen
   try {
     console.log(`Iniciando geracao de artigo de boas-vindas para: ${band.name}`)
 
-    // Busca o autor IA
-    const author = await getAiAuthor()
+    // Busca o autor IA e tags disponiveis
+    const [author, availableTags] = await Promise.all([
+      getAiAuthor(),
+      getAvailableTagNames(),
+    ])
 
-    // Gera o artigo
-    const article = await generateWelcomeArticle(band)
+    // Gera o artigo (passando tags existentes para o prompt)
+    const article = await generateWelcomeArticle(band, availableTags)
 
     // Salva no banco
     const articleId = await saveGeneratedArticle(article, author.id)
@@ -217,14 +234,17 @@ export async function generateAndSaveNewsArticle(
       }
     }
 
-    // Busca o autor IA
-    const author = await getAiAuthor()
+    // Busca o autor IA e tags disponiveis
+    const [author, availableTags] = await Promise.all([
+      getAiAuthor(),
+      getAvailableTagNames(),
+    ])
 
     // Enriquece a noticia buscando video do YouTube na pagina original
     const enrichedNews = await enrichNewsWithVideo(news)
 
-    // Gera o artigo (passa a categoria para o prompt)
-    const article = await generateNewsArticle(enrichedNews, category)
+    // Gera o artigo (passa a categoria e tags existentes para o prompt)
+    const article = await generateNewsArticle(enrichedNews, category, availableTags)
 
     // Salva no banco com a categoria correta, fonte original e imagem de capa
     const articleId = await saveGeneratedArticle(
@@ -323,13 +343,17 @@ export async function generateAndSaveEnrichedArticle(
       }
     }
 
-    // Busca o autor IA
-    const author = await getAiAuthor()
+    // Busca o autor IA e tags disponiveis
+    const [author, availableTags] = await Promise.all([
+      getAiAuthor(),
+      getAvailableTagNames(),
+    ])
 
-    // Gera o artigo usando as fontes enriquecidas
+    // Gera o artigo usando as fontes enriquecidas (com tags existentes)
     const article = await generateArticleFromEnrichedSources(
       enrichedNews.sources,
-      category
+      category,
+      availableTags
     )
 
     // Salva no banco com a categoria correta, fonte original e imagem de capa
