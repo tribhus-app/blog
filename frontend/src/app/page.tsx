@@ -28,8 +28,8 @@ function mapPostToType(post: PostResponse): Post {
     excerpt: post.excerpt || '',
     content: post.content,
     coverImage: post.coverImage || '/images/placeholder-1.jpg',
-    category: mapCategoryToType(post.category),
-    author: {
+    category: post.category ? mapCategoryToType(post.category) : { id: '', name: 'Sem categoria', slug: 'sem-categoria', description: '', color: '#914100' },
+    author: post.author ? {
       id: post.author.id,
       name: post.author.name,
       slug: post.author.slug,
@@ -37,7 +37,7 @@ function mapPostToType(post: PostResponse): Post {
       avatar: post.author.avatar || '',
       email: post.author.email,
       isAi: post.author.isAi,
-    },
+    } : { id: '', name: 'Tribhus', slug: 'tribhus', bio: '', avatar: '', email: '', isAi: false },
     tags: (post.tags || []).map(tag => ({
       id: tag.id,
       name: tag.name,
