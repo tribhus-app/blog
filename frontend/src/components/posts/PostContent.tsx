@@ -2,10 +2,60 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { imagePresets } from '@/lib/imagePresets'
 import { Fragment } from 'react'
+import DOMPurify from 'isomorphic-dompurify'
 
 interface PostContentProps {
   content: string
 }
+
+// CRIT-010: config de sanitizacao HTML. Permite tudo que Tiptap/parseInline geram;
+// bloqueia <script>, handlers on*, javascript: urls. Iframes sao permitidos mas
+// restritos a YouTube/Vimeo via hook abaixo.
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'h1','h2','h3','h4','h5','h6',
+    'p','br','hr','div','span',
+    'strong','b','em','i','u','s','del','ins','mark','small','sub','sup',
+    'blockquote','pre','code',
+    'ul','ol','li',
+    'a','img','figure','figcaption',
+    'iframe',
+    'table','thead','tbody','tr','td','th',
+  ],
+  ALLOWED_ATTR: [
+    'href','target','rel','class','id','title',
+    'src','alt','width','height',
+    'allow','allowfullscreen','frameborder',
+    'style',
+  ],
+  FORBID_TAGS: ['script','style','object','embed','base','link','meta','form','input','button','textarea','select','option'],
+  FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onmouseout','onfocus','onblur','onchange','onsubmit','formaction','xlink:href'],
+  ALLOW_DATA_ATTR: false,
+}
+
+// Hook: remove iframes que nao sejam do YouTube/Vimeo
+const ALLOWED_IFRAME_HOSTS = [
+  'www.youtube.com','youtube.com',
+  'www.youtube-nocookie.com','youtube-nocookie.com',
+  'player.vimeo.com',
+]
+if (typeof DOMPurify.addHook === 'function') {
+  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+    if (data.tagName === 'iframe') {
+      const src = (node as Element).getAttribute('src') || ''
+      try {
+        const u = new URL(src, 'https://invalid.local')
+        if (!ALLOWED_IFRAME_HOSTS.includes(u.hostname.toLowerCase())) {
+          ;(node as Element).remove()
+        }
+      } catch {
+        ;(node as Element).remove()
+      }
+    }
+  })
+}
+
+const sanitize = (html: string): string => DOMPurify.sanitize(html, SANITIZE_CONFIG) as unknown as string
 
 // Inline parser for bold, italic, link (returns HTML string for dangerouslySetInnerHTML inside safe tags)
 const parseInline = (text: string) => {
@@ -96,13 +146,13 @@ export default function PostContent({ content }: PostContentProps) {
                   const level = hMatch[1].length
                   const text = parseInline(hMatch[2])
                   const Tag = `h${level}` as keyof JSX.IntrinsicElements
-                  return <Tag key={key} dangerouslySetInnerHTML={{ __html: text }} />
+                  return <Tag key={key} dangerouslySetInnerHTML={{ __html: sanitize(text) }} />
                 }
 
                 // Blockquote
                 if (cleanBlock.startsWith('> ')) {
                   const text = parseInline(cleanBlock.replace(/^>\s+/gm, '').replace(/\n/g, '<br/>'))
-                  return <blockquote key={key} dangerouslySetInnerHTML={{ __html: text }} />
+                  return <blockquote key={key} dangerouslySetInnerHTML={{ __html: sanitize(text) }} />
                 }
 
                 // List (unordered) - crude detection if block starts with "- "
@@ -111,7 +161,7 @@ export default function PostContent({ content }: PostContentProps) {
                   return (
                     <ul key={key} className="list-disc pl-6 my-4">
                       {items.map((item, i) => (
-                        <li key={i} dangerouslySetInnerHTML={{ __html: parseInline(item.replace(/^- /, '')) }} />
+                        <li key={i} dangerouslySetInnerHTML={{ __html: sanitize(parseInline(item.replace(/^- /, ''))) }} />
                       ))}
                     </ul>
                   )
@@ -135,13 +185,13 @@ export default function PostContent({ content }: PostContentProps) {
                       /<a[^>]*href=["'](?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})[^"']*["'][^>]*>[^<]*<\/a>/gi,
                       '<div class="video-container my-6"><iframe class="w-full aspect-video rounded-lg" src="https://www.youtube-nocookie.com/embed/$1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>'
                    )
-                   return <div key={key} dangerouslySetInnerHTML={{ __html: videoBlock }} />
+                   return <div key={key} dangerouslySetInnerHTML={{ __html: sanitize(videoBlock) }} />
                 }
 
                 // Standard Paragraph
                 // Convert single newlines to <br/>
                 const pText = parseInline(cleanBlock.replace(/\n/g, '<br/>'))
-                return <p key={key} dangerouslySetInnerHTML={{ __html: pText }} />
+                return <p key={key} dangerouslySetInnerHTML={{ __html: sanitize(pText) }} />
               })}
             </Fragment>
           )

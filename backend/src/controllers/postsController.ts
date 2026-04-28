@@ -2,6 +2,57 @@ import { Request, Response } from 'express'
 import { prisma } from '../utils/prisma'
 import slugify from 'slugify'
 import { z } from 'zod'
+import DOMPurify from 'isomorphic-dompurify'
+
+// CRIT-010: sanitiza HTML do post antes de gravar. Whitelist compativel com Tiptap + YouTube.
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'h1','h2','h3','h4','h5','h6',
+    'p','br','hr','div','span',
+    'strong','b','em','i','u','s','del','ins','mark','small','sub','sup',
+    'blockquote','pre','code',
+    'ul','ol','li',
+    'a','img','figure','figcaption',
+    'iframe',
+    'table','thead','tbody','tr','td','th',
+  ],
+  ALLOWED_ATTR: [
+    'href','target','rel','class','id','title',
+    'src','alt','width','height',
+    'allow','allowfullscreen','frameborder',
+    'style',
+  ],
+  FORBID_TAGS: ['script','style','object','embed','base','link','meta','form','input','button','textarea','select','option'],
+  FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onmouseout','onfocus','onblur','onchange','onsubmit','formaction','xlink:href'],
+  ALLOW_DATA_ATTR: false,
+}
+
+const ALLOWED_IFRAME_HOSTS = [
+  'www.youtube.com','youtube.com',
+  'www.youtube-nocookie.com','youtube-nocookie.com',
+  'player.vimeo.com',
+]
+
+if (typeof DOMPurify.addHook === 'function') {
+  DOMPurify.addHook('uponSanitizeElement', (node: any, data: any) => {
+    if (data.tagName === 'iframe') {
+      const src = node.getAttribute?.('src') || ''
+      try {
+        const u = new URL(src, 'https://invalid.local')
+        if (!ALLOWED_IFRAME_HOSTS.includes(u.hostname.toLowerCase())) {
+          node.remove?.()
+        }
+      } catch {
+        node.remove?.()
+      }
+    }
+  })
+}
+
+const sanitizeContent = (html: string | undefined): string | undefined => {
+  if (html === undefined || html === null) return html
+  return DOMPurify.sanitize(html, SANITIZE_CONFIG) as unknown as string
+}
 
 // Schemas de validacao
 const createPostSchema = z.object({
@@ -286,7 +337,7 @@ export async function createPost(req: Request, res: Response) {
         title: data.title,
         slug,
         excerpt: data.excerpt,
-        content: data.content,
+        content: sanitizeContent(data.content) as string,
         coverImage: data.coverImage,
         imageCredit: data.imageCredit,
         imageCreditUrl: data.imageCreditUrl,
@@ -408,7 +459,7 @@ export async function updatePost(req: Request, res: Response) {
         title: data.title,
         slug,
         excerpt: data.excerpt,
-        content: data.content,
+        content: sanitizeContent(data.content),
         coverImage: data.coverImage,
         imageCredit: data.imageCredit,
         imageCreditUrl: data.imageCreditUrl,

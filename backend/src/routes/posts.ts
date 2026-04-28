@@ -1,8 +1,23 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import * as postsController from '../controllers/postsController'
 import { authMiddleware, adminMiddleware } from '../middlewares/auth'
 
 const router = Router()
+
+// BAIXO-004: rate limit em /posts/:id/view para evitar inflation artificial
+// de contagem de views. Key por IP+postId permite registros legitimos distribuidos.
+const viewLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hora
+  max: 30, // 30 views/hora do mesmo IP no mesmo post
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown'
+    return `${ip}:${req.params.id}`
+  },
+  message: { error: 'Muitas visualizacoes deste post do mesmo IP.' },
+})
 
 // Rotas publicas
 router.get('/', postsController.listPosts)
@@ -19,7 +34,7 @@ router.delete('/:id', authMiddleware, adminMiddleware, postsController.deletePos
 router.patch('/:id/publish', authMiddleware, adminMiddleware, postsController.publishPost)
 router.patch('/:id/unpublish', authMiddleware, adminMiddleware, postsController.unpublishPost)
 
-// Incrementar views (publico)
-router.post('/:id/view', postsController.incrementViews)
+// Incrementar views (publico, rate-limited)
+router.post('/:id/view', viewLimiter, postsController.incrementViews)
 
 export default router

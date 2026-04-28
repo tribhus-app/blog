@@ -21,6 +21,15 @@ COPY . .
 # Build
 RUN npm run build
 
+# ALTO-015: rodar como user não-root (UID 1001).
+# node:20-slim já vem com user 'node' (uid 1000) — criamos 'nodejs' 1001 para
+# alinhar com padrão do resto da stack (uid 1001 consistente entre services).
+RUN groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs -s /bin/sh -m nodejs \
+    && mkdir -p /app/uploads \
+    && chown -R nodejs:nodejs /app
+
+USER nodejs
+
 # Expor porta
 EXPOSE 3001
 
