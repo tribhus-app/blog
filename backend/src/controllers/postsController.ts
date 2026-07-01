@@ -3,6 +3,8 @@ import { prisma } from '../utils/prisma'
 import slugify from 'slugify'
 import { z } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
+import { parseUserAgent, classifySource, extractIp } from '../utils/analytics'
+import { getLocation } from '../utils/geoLocation'
 
 // CRIT-010: sanitiza HTML do post antes de gravar. Whitelist compativel com Tiptap + YouTube.
 const SANITIZE_CONFIG = {
@@ -54,6 +56,38 @@ const sanitizeContent = (html: string | undefined): string | undefined => {
   return DOMPurify.sanitize(html, SANITIZE_CONFIG) as unknown as string
 }
 
+function parseScheduledAt(status: 'draft' | 'published' | 'scheduled' | undefined, scheduledAt?: string): Date | null | undefined {
+  if (status !== 'scheduled') {
+    return status ? null : undefined
+  }
+
+  if (!scheduledAt) {
+    throw new Error('Informe a data e hora do agendamento')
+  }
+
+  const date = new Date(scheduledAt)
+  if (Number.isNaN(date.getTime())) {
+    throw new Error('Data de agendamento invalida')
+  }
+
+  return date
+}
+
+function getPublishedAtForStatus(
+  status: 'draft' | 'published' | 'scheduled' | undefined,
+  currentPublishedAt?: Date | null
+): Date | null | undefined {
+  if (status === 'published') {
+    return currentPublishedAt || new Date()
+  }
+
+  if (status === 'scheduled' || status === 'draft') {
+    return null
+  }
+
+  return undefined
+}
+
 // Schemas de validacao
 const createPostSchema = z.object({
   title: z.string().min(1).max(255),
@@ -69,6 +103,7 @@ const createPostSchema = z.object({
   tagIds: z.array(z.string().uuid()).optional(),
   status: z.enum(['draft', 'published', 'scheduled']).optional(),
   featured: z.boolean().optional(),
+  socialPublicar: z.boolean().optional(),
   scheduledAt: z.string().optional(),
   metaTitle: z.string().max(70).optional(),
   metaDescription: z.string().max(170).optional(),
@@ -325,6 +360,13 @@ export async function createPost(req: Request, res: Response) {
 
     const data = validation.data
     const slug = data.slug || slugify(data.title, { lower: true, strict: true })
+    const status = data.status || 'draft'
+    let scheduledAt: Date | null | undefined
+    try {
+      scheduledAt = parseScheduledAt(status, data.scheduledAt)
+    } catch (error) {
+      return res.status(400).json({ error: error instanceof Error ? error.message : 'Data de agendamento invalida' })
+    }
 
     // Verifica se slug ja existe
     const existingPost = await prisma.blogPost.findUnique({ where: { slug } })
@@ -343,10 +385,11 @@ export async function createPost(req: Request, res: Response) {
         imageCreditUrl: data.imageCreditUrl,
         categoryId: data.categoryId,
         authorId: data.authorId,
-        status: data.status || 'draft',
+        status,
         featured: data.featured || false,
-        publishedAt: data.status === 'published' ? new Date() : null,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
+        socialPublicar: data.socialPublicar || false,
+        publishedAt: getPublishedAtForStatus(status),
+        scheduledAt: scheduledAt ?? null,
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         focusKeyword: data.focusKeyword,
@@ -421,6 +464,12 @@ export async function updatePost(req: Request, res: Response) {
 
     const data = validation.data
     let slug = data.slug || existingPost.slug
+    let scheduledAt: Date | null | undefined
+    try {
+      scheduledAt = parseScheduledAt(data.status, data.scheduledAt)
+    } catch (error) {
+      return res.status(400).json({ error: error instanceof Error ? error.message : 'Data de agendamento invalida' })
+    }
 
     // Verifica se slug mudou e se ja existe
     if (slug !== existingPost.slug) {
@@ -447,11 +496,7 @@ export async function updatePost(req: Request, res: Response) {
       }
     }
 
-    // Determina publishedAt
-    let publishedAt = existingPost.publishedAt
-    if (data.status === 'published' && !existingPost.publishedAt) {
-      publishedAt = new Date()
-    }
+    const publishedAt = getPublishedAtForStatus(data.status, existingPost.publishedAt)
 
     const post = await prisma.blogPost.update({
       where: { id },
@@ -467,8 +512,9 @@ export async function updatePost(req: Request, res: Response) {
         authorId: data.authorId,
         status: data.status,
         featured: data.featured,
+        socialPublicar: data.socialPublicar,
         publishedAt,
-        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
+        scheduledAt,
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         focusKeyword: data.focusKeyword,
@@ -550,19 +596,98 @@ export async function unpublishPost(req: Request, res: Response) {
   }
 }
 
-// Incrementar views
+// Registrar visualizacao (evento + cache no contador do post)
 export async function incrementViews(req: Request, res: Response) {
   try {
     const { id } = req.params
+    const body = (req.body || {}) as Record<string, any>
 
-    await prisma.blogPost.update({
-      where: { id },
-      data: { views: { increment: 1 } },
+    const ua = req.headers['user-agent']
+    const { isBot, deviceType, browser, os } = parseUserAgent(ua)
+    const ip = extractIp(req)
+    const referer = (body.referer as string) || (req.headers['referer'] as string) || null
+    const selfHost = (process.env.FRONTEND_URL || 'https://blog.tribhus.com.br')
+      .replace(/^https?:\/\//, '')
+      .replace(/\/.*$/, '')
+
+    const source = classifySource(referer, body.utm_source, body.utm_medium, selfHost)
+
+    const str = (v: any, max: number) =>
+      typeof v === 'string' && v.length ? v.slice(0, max) : null
+
+    // Cria o evento. Mesmo bots sao gravados (com is_bot=true) para auditoria,
+    // mas NAO contam no contador publico do post.
+    const event = await prisma.blogPostView.create({
+      data: {
+        postId: id,
+        ip: ip.slice(0, 45),
+        referer: referer ? referer.slice(0, 2000) : null,
+        source,
+        utmSource: str(body.utm_source, 100),
+        utmMedium: str(body.utm_medium, 100),
+        utmCampaign: str(body.utm_campaign, 100),
+        sessionId: str(body.session_id, 64),
+        deviceType,
+        browser,
+        os,
+        isBot,
+      },
+      select: { id: true },
     })
 
-    res.json({ success: true })
+    if (!isBot) {
+      await prisma.blogPost.update({
+        where: { id },
+        data: { views: { increment: 1 } },
+      })
+    }
+
+    // Resolve a geolocalizacao em background (ip-api.com, cache 24h).
+    // Nao bloqueamos a resposta: se falhar, o evento fica sem geo.
+    if (!isBot && ip && ip !== 'unknown') {
+      getLocation(ip)
+        .then((geo) => {
+          if (!geo) return
+          return prisma.blogPostView.update({
+            where: { id: event.id },
+            data: {
+              country: geo.countryCode ? geo.countryCode.slice(0, 2) : null,
+              region: geo.state ? geo.state.slice(0, 100) : null,
+              city: geo.city ? geo.city.slice(0, 100) : null,
+            },
+          })
+        })
+        .catch(() => {})
+    }
+
+    res.json({ success: true, viewId: event.id })
   } catch (error) {
-    console.error('Erro ao incrementar views:', error)
-    res.status(500).json({ error: 'Erro ao incrementar views' })
+    console.error('Erro ao registrar view:', error)
+    res.status(500).json({ error: 'Erro ao registrar view' })
+  }
+}
+
+// Atualiza engajamento (tempo na pagina + scroll) ao sair do post.
+// Recebido via navigator.sendBeacon, entao a resposta e best-effort.
+export async function recordEngagement(req: Request, res: Response) {
+  try {
+    const { viewId } = req.params
+    const body = (req.body || {}) as Record<string, any>
+
+    const time = Number(body.time_on_page)
+    const scroll = Number(body.scroll_depth)
+
+    await prisma.blogPostView.update({
+      where: { id: viewId },
+      data: {
+        timeOnPage: Number.isFinite(time) ? Math.max(0, Math.min(86400, Math.round(time))) : undefined,
+        scrollDepth: Number.isFinite(scroll) ? Math.max(0, Math.min(100, Math.round(scroll))) : undefined,
+      },
+    })
+
+    res.status(204).end()
+  } catch (error) {
+    // sendBeacon ignora a resposta; so logamos.
+    res.status(204).end()
   }
 }

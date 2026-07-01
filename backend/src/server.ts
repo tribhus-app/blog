@@ -11,10 +11,11 @@ import tagsRoutes from './routes/tags'
 import authRoutes from './routes/auth'
 import searchRoutes from './routes/search'
 import adminRoutes from './routes/admin'
+import analyticsRoutes from './routes/analytics'
 import uploadRoutes from './routes/upload'
 import aiRoutes from './routes/ai'
 import appRoutes from './routes/app'
-import { initializeScheduler } from './services/cron/scheduler'
+import { startScheduledPostsPublisher } from './services/cron/publishScheduledPosts'
 
 dotenv.config()
 
@@ -57,6 +58,7 @@ app.use('/api/authors', authorsRoutes)
 app.use('/api/tags', tagsRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/search', searchRoutes)
+app.use('/api/admin/analytics', analyticsRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/ai', aiRoutes)
@@ -76,6 +78,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`)
   console.log(`Health check: http://localhost:${PORT}/health`)
+  startScheduledPostsPublisher()
 
   // Scheduler de IA - desligado por padrao
   // Use POST /api/ai/scheduler/start para ativar

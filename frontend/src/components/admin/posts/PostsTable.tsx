@@ -65,6 +65,18 @@ export default function PostsTable({ posts, onRefresh }: PostsTableProps) {
     }
   }
 
+  function getDisplayDate(post: AdminPost) {
+    if (post.status === 'scheduled' && post.scheduledAt) {
+      return `Agendado: ${new Date(post.scheduledAt).toLocaleString('pt-BR')}`
+    }
+
+    if (post.publishedAt) {
+      return new Date(post.publishedAt).toLocaleDateString('pt-BR')
+    }
+
+    return new Date(post.createdAt).toLocaleDateString('pt-BR')
+  }
+
   if (posts.length === 0) {
     return (
       <div className="bg-dark-card border border-border rounded-xl p-8 text-center">
@@ -156,7 +168,7 @@ export default function PostsTable({ posts, onRefresh }: PostsTableProps) {
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-text-secondary text-sm">
-                    {new Date(post.createdAt).toLocaleDateString('pt-BR')}
+                    {getDisplayDate(post)}
                   </span>
                 </td>
                 <td className="px-4 py-3">

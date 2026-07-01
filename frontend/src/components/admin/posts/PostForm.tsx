@@ -50,6 +50,7 @@ export default function PostForm({ post, isEditing = false }: PostFormProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>(post?.tags?.map(t => t.id) || [])
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>(post?.status || 'draft')
   const [featured, setFeatured] = useState(post?.featured || false)
+  const [socialPublicar, setSocialPublicar] = useState(post?.socialPublicar || false)
   const [scheduledAt, setScheduledAt] = useState(post?.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : '')
 
   // SEO state
@@ -153,9 +154,14 @@ export default function PostForm({ post, isEditing = false }: PostFormProps) {
     e.preventDefault()
     setError('')
     setSuccessMessage('')
-    setIsSaving(true)
 
     const finalStatus = saveStatus || status
+    if (finalStatus === 'scheduled' && !scheduledAt) {
+      setError('Informe a data e hora do agendamento')
+      return
+    }
+
+    setIsSaving(true)
 
     try {
       const data = {
@@ -168,6 +174,7 @@ export default function PostForm({ post, isEditing = false }: PostFormProps) {
         imageCreditUrl: imageCreditUrl || undefined,
         status: finalStatus,
         featured,
+        socialPublicar,
         scheduledAt: finalStatus === 'scheduled' && scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
         metaTitle: metaTitle || undefined,
         metaDescription: metaDescription || undefined,
@@ -315,6 +322,17 @@ export default function PostForm({ post, isEditing = false }: PostFormProps) {
               <span className="text-sm text-text-secondary">Destacar post</span>
             </label>
 
+            {/* Divulgar nas redes sociais (gera story/post pendente de aprovacao) */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={socialPublicar}
+                onChange={(e) => setSocialPublicar(e.target.checked)}
+                className="w-4 h-4 rounded border-border bg-dark-input text-primary focus:ring-primary focus:ring-offset-dark"
+              />
+              <span className="text-sm text-text-secondary">Divulgar nas redes sociais</span>
+            </label>
+
             {/* Action buttons */}
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
               <button
@@ -325,6 +343,16 @@ export default function PostForm({ post, isEditing = false }: PostFormProps) {
               >
                 Salvar Rascunho
               </button>
+              {status === 'scheduled' && (
+                <button
+                  type="button"
+                  onClick={(e) => handleSubmit(e, 'scheduled')}
+                  disabled={isSaving}
+                  className="w-full px-4 py-2 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/30 text-accent-blue rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Agendar
+                </button>
+              )}
               <button
                 type="button"
                 onClick={(e) => handleSubmit(e, 'published')}

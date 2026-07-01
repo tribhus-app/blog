@@ -12,6 +12,7 @@ export interface Post {
   tags: Tag[]
   status: 'draft' | 'published' | 'scheduled'
   featured: boolean
+  socialPublicar?: boolean
   publishedAt: string
   createdAt: string
   updatedAt: string

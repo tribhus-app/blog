@@ -95,6 +95,7 @@ export interface AdminPost {
   imageCreditUrl: string | null
   status: 'draft' | 'published' | 'scheduled'
   featured: boolean
+  socialPublicar?: boolean
   publishedAt: string | null
   scheduledAt: string | null
   views: number
@@ -156,6 +157,7 @@ export interface CreatePostData {
   imageCreditUrl?: string
   status: 'draft' | 'published' | 'scheduled'
   featured?: boolean
+  socialPublicar?: boolean
   scheduledAt?: string
   metaTitle?: string
   metaDescription?: string
@@ -463,4 +465,106 @@ export async function getNewsPreview(limit: number = 10): Promise<{ count: numbe
   return fetchAdminApi<{ count: number; news: NewsPreviewItem[] }>('/ai/news/preview', {
     params: { limit },
   })
+}
+
+// ========================================
+// Analytics
+// ========================================
+
+export type AnalyticsPeriod = '24h' | '7d' | '30d' | '90d' | '365d' | 'all'
+
+export interface AnalyticsOverview {
+  period: string
+  views: number
+  uniqueVisitors: number
+  avgTimeOnPage: number // segundos
+  avgScrollDepth: number // %
+  botViews: number
+  publishedPosts: number
+  deltas: {
+    views: number | null
+    uniqueVisitors: number | null
+    avgTimeOnPage: number | null
+    avgScrollDepth: number | null
+  } | null
+}
+
+export interface TimeseriesPoint {
+  day: string
+  views: number
+  uniques: number
+}
+
+export interface AnalyticsTopPost {
+  id: string
+  title: string
+  slug: string
+  views: number
+  uniques: number
+  avgTimeOnPage: number
+  avgScrollDepth: number
+}
+
+export interface SourceBreakdown {
+  source: string
+  views: number
+}
+
+export interface LabelBreakdown {
+  label: string
+  views: number
+}
+
+export interface DevicesBreakdown {
+  devices: LabelBreakdown[]
+  browsers: LabelBreakdown[]
+  os: LabelBreakdown[]
+}
+
+export interface GeoBreakdown {
+  regions: LabelBreakdown[]
+  cities: LabelBreakdown[]
+  countries: LabelBreakdown[]
+  pendingGeo: number
+}
+
+export interface PostAnalyticsDetail {
+  post: { id: string; title: string; slug: string; totalViews: number }
+  kpis: {
+    views: number
+    uniqueVisitors: number
+    avgTimeOnPage: number
+    avgScrollDepth: number
+  }
+  sources: SourceBreakdown[]
+  devices: LabelBreakdown[]
+  timeseries: { day: string; views: number }[]
+}
+
+export async function getAnalyticsOverview(period: AnalyticsPeriod = '30d'): Promise<AnalyticsOverview> {
+  return fetchAdminApi<AnalyticsOverview>('/admin/analytics/overview', { params: { period } })
+}
+
+export async function getAnalyticsTimeseries(period: AnalyticsPeriod = '30d'): Promise<TimeseriesPoint[]> {
+  return fetchAdminApi<TimeseriesPoint[]>('/admin/analytics/timeseries', { params: { period } })
+}
+
+export async function getAnalyticsTopPosts(period: AnalyticsPeriod = '30d', limit = 20): Promise<AnalyticsTopPost[]> {
+  return fetchAdminApi<AnalyticsTopPost[]>('/admin/analytics/top-posts', { params: { period, limit } })
+}
+
+export async function getAnalyticsSources(period: AnalyticsPeriod = '30d'): Promise<SourceBreakdown[]> {
+  return fetchAdminApi<SourceBreakdown[]>('/admin/analytics/sources', { params: { period } })
+}
+
+export async function getAnalyticsDevices(period: AnalyticsPeriod = '30d'): Promise<DevicesBreakdown> {
+  return fetchAdminApi<DevicesBreakdown>('/admin/analytics/devices', { params: { period } })
+}
+
+export async function getAnalyticsGeo(period: AnalyticsPeriod = '30d'): Promise<GeoBreakdown> {
+  return fetchAdminApi<GeoBreakdown>('/admin/analytics/geo', { params: { period } })
+}
+
+export async function getPostAnalytics(id: string, period: AnalyticsPeriod = '30d'): Promise<PostAnalyticsDetail> {
+  return fetchAdminApi<PostAnalyticsDetail>(`/admin/analytics/posts/${id}`, { params: { period } })
 }

@@ -19,6 +19,7 @@ model BlogPost {
   imageCreditUrl  String?       @map("image_credit_url") @db.VarChar(500)
   status          post_status?  @default(draft)
   featured        Boolean?      @default(false)
+  socialPublicar  Boolean?      @default(false) @map("social_publicar")
   publishedAt     DateTime?     @map("published_at") @db.Timestamp(6)
   scheduledAt     DateTime?     @map("scheduled_at") @db.Timestamp(6)
   views           Int?          @default(0)
@@ -32,6 +33,7 @@ model BlogPost {
   categoryId      String?       @map("category_id") @db.Uuid
   authorId        String        @map("author_id") @db.Uuid
   tags            BlogPostTag[]
+  viewEvents      BlogPostView[]
   author          BlogAuthor    @relation(fields: [authorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   category        BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -41,6 +43,36 @@ model BlogPost {
   @@index([slug], map: "idx_blog_posts_slug")
   @@index([status], map: "idx_blog_posts_status")
   @@map("blog_posts")
+}
+
+model BlogPostView {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId      String   @map("post_id") @db.Uuid
+  viewedAt    DateTime @default(now()) @map("viewed_at") @db.Timestamp(6)
+  ip          String?  @db.VarChar(45)
+  country     String?  @db.VarChar(2)
+  region      String?  @db.VarChar(100)
+  city        String?  @db.VarChar(100)
+  deviceType  String?  @map("device_type") @db.VarChar(20)
+  browser     String?  @db.VarChar(50)
+  os          String?  @db.VarChar(50)
+  referer     String?
+  source      String?  @db.VarChar(30)
+  utmSource   String?  @map("utm_source") @db.VarChar(100)
+  utmMedium   String?  @map("utm_medium") @db.VarChar(100)
+  utmCampaign String?  @map("utm_campaign") @db.VarChar(100)
+  sessionId   String?  @map("session_id") @db.VarChar(64)
+  timeOnPage  Int?     @map("time_on_page")
+  scrollDepth Int?     @map("scroll_depth")
+  isBot       Boolean  @default(false) @map("is_bot")
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([postId, viewedAt], map: "idx_bpv_post_viewed")
+  @@index([viewedAt], map: "idx_bpv_viewed")
+  @@index([source], map: "idx_bpv_source")
+  @@index([sessionId], map: "idx_bpv_session")
+  @@index([isBot], map: "idx_bpv_isbot")
+  @@map("blog_post_views")
 }
 
 model BlogCategory {

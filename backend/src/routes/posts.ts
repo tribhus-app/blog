@@ -34,7 +34,10 @@ router.delete('/:id', authMiddleware, adminMiddleware, postsController.deletePos
 router.patch('/:id/publish', authMiddleware, adminMiddleware, postsController.publishPost)
 router.patch('/:id/unpublish', authMiddleware, adminMiddleware, postsController.unpublishPost)
 
-// Incrementar views (publico, rate-limited)
+// Registrar view (publico, rate-limited)
 router.post('/:id/view', viewLimiter, postsController.incrementViews)
+
+// Atualizar engajamento (tempo/scroll) ao sair do post — via sendBeacon, sem rate limit estrito
+router.post('/view/:viewId/engagement', postsController.recordEngagement)
 
 export default router

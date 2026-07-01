@@ -1115,6 +1115,49 @@ Admin acessa /admin/ai
 
 ## Historico de Alteracoes
 
+### 20/06/2026 - SISTEMA DE ANALYTICS PROPRIO (FIRST-PARTY) + GEO
+- **Contador de views reescrito** de um inteiro simples (`blog_posts.views++`) para
+  um sistema de analytics completo, sob medida para estrategia de SEO/Discover.
+- **Seed antigo zerado**: as ~65k views vinham da importacao de 29/01 (inteiro
+  baked-in, nao trafego real). Zeradas com backup completo + snapshot CSV em
+  `/opt/backups/` (`tribhus_db_pre_analytics_*.sql.gz` e `blog_views_snapshot_*.csv`).
+- **Nova tabela `blog_post_views`** (1 linha por visita): post_id, viewed_at, ip,
+  country/region/city, device_type, browser, os, referer, source (classificado),
+  utm_source/medium/campaign, session_id, time_on_page, scroll_depth, is_bot.
+  Indices em (post_id, viewed_at), viewed_at, source, session_id, is_bot.
+  Retencao: eventos brutos mantidos indefinidamente.
+- **Coleta first-party** (sem terceiros para tracking): ViewTracker reescrito em
+  2 fases — registra a view e, ao sair da pagina (sendBeacon), envia tempo de
+  leitura + scroll maximo. Captura UTM e referer.
+- **Classificacao de fonte de trafego** (`utils/analytics.ts`): organic_google,
+  google_discover, organic_bing/duckduckgo/other, social_* (instagram/x/facebook/
+  tiktok/youtube/linkedin/whatsapp/reddit/telegram), direct, internal, referral,
+  email, paid. Parser de user-agent (device/browser/os) e deteccao de bot por
+  regex — bots sao gravados (is_bot=true) mas NAO contam no contador publico.
+- **Geolocalizacao por IP**: reaproveitado o GeoLocationService da plataforma
+  Tribhus (`/opt/backend/utils/GeoLocationService.ts`) — mesma fonte **ip-api.com**
+  (gratis, sem API key, 45 req/min, cache 24h). Portado para
+  `backend/src/utils/geoLocation.ts` usando `fetch` nativo do Node 20 (sem axios,
+  sem dep nova). Resolucao roda em BACKGROUND ao registrar a view (nao bloqueia a
+  resposta; resiliente se o ip-api cair). IP cru armazenado (restrito ao admin);
+  resolucao geo grava country/region/city.
+- **Endpoints admin** (`/api/admin/analytics`, JWT + adminMiddleware):
+  overview (KPIs + delta vs periodo anterior), timeseries, top-posts, sources,
+  devices, geo (estados/cidades/paises), posts/:id (drill-down).
+- **Nova area `/admin/analytics`** (item no AdminSidebar): KPIs (views, unicos,
+  tempo medio de leitura, scroll medio), grafico de trafego no tempo (SVG inline,
+  sem lib de grafico), fontes de trafego, dispositivos/navegadores, estados/
+  cidades/paises e ranking de posts com drill-down por post (`/admin/analytics/[id]`).
+- Arquivos novos: backend `utils/analytics.ts`, `utils/geoLocation.ts`,
+  `controllers/analyticsController.ts`, `routes/analytics.ts`; frontend
+  `components/admin/analytics/AnalyticsCharts.tsx`, `app/admin/analytics/page.tsx`,
+  `app/admin/analytics/[id]/page.tsx`. Alterados: `controllers/postsController.ts`
+  (incrementViews + recordEngagement), `routes/posts.ts`, `server.ts`,
+  `prisma/schema.prisma` (model BlogPostView), `services/adminApi.ts`,
+  `components/posts/ViewTracker.tsx`, `components/admin/layout/AdminSidebar.tsx`.
+- LGPD: armazenamos IP cru (dado pessoal, restrito ao admin) — pendente mencionar
+  coleta de analytics first-party na politica de privacidade do blog.
+
 ### 29/01/2026 - INTEGRACAO TAVILY E ANTI-ALUCINACAO
 - **Tavily API integrada** como fonte primaria de busca de noticias
 - Implementado fluxo de busca em duas fases:
@@ -1207,5 +1250,5 @@ Admin acessa /admin/ai
 ---
 
 *Documento criado em: 24/01/2025*
-*Ultima atualizacao: 29/01/2026*
-*Status: Fases 1-5 concluidas - Blog, Painel Admin e Servico de IA com Tavily totalmente funcionais*
+*Ultima atualizacao: 20/06/2026*
+*Status: Fases 1-5 concluidas + Sistema de Analytics first-party (views, fontes, engajamento e geolocalizacao) em producao*
