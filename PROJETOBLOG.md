@@ -583,7 +583,8 @@ TAVILY_API_KEY=tvly-...
 NEWSAPI_KEY=
 
 # Webhook Secret (para integracao com Tribhus principal)
-WEBHOOK_SECRET=tribhus-webhook-secret-2025
+# Valor real em /root/.credenciais/ACESSOS.md (no servidor, fora de repositorio)
+WEBHOOK_SECRET=<ver ACESSOS.md>
 ```
 
 #### Obtendo a API Key da Tavily (Recomendado)
@@ -849,13 +850,22 @@ Arquivos copiados de tribhus_web para frontend/public/images/:
 
 ## Variaveis de Ambiente (.env)
 
+> ⚠️ **ESTE REPOSITORIO E PUBLICO.** Nao colocar valor real de senha, chave ou token
+> aqui — nem "so pra documentar". Ate 29/07/2026 este arquivo trazia a senha do Postgres
+> de producao, a chave do MinIO, o JWT_SECRET e o WEBHOOK_SECRET, todos validos e
+> legiveis por qualquer pessoa na internet. Os quatro foram rotacionados naquele dia.
+>
+> Valores reais ficam em `/root/.credenciais/ACESSOS.md` (no servidor, fora de qualquer
+> repositorio) e no `.env` local, que e gitignored. Aqui vai so o formato.
+
 ### Raiz do Projeto (.env)
 ```bash
-# Database
-DATABASE_URL=postgresql://postgres:%40tribhusdb87@187.45.185.91:5432/tribhus_db
+# Database — valor real em /root/.credenciais/ACESSOS.md
+DATABASE_URL=postgresql://postgres:<senha>@187.45.185.91:5432/tribhus_db
 
 # JWT
-JWT_SECRET=tribhus-blog-jwt-secret-2025-secure
+JWT_SECRET=<ver ACESSOS.md>
+
 
 # URLs
 FRONTEND_URL=https://blog.tribhus.com.br
@@ -872,14 +882,15 @@ TAVILY_API_KEY=tvly-...
 NEWSAPI_KEY=
 
 # Webhook Secret (para integracao com Tribhus principal)
-WEBHOOK_SECRET=tribhus-webhook-secret-2025
+# Valor real em /root/.credenciais/ACESSOS.md
+WEBHOOK_SECRET=<ver ACESSOS.md>
 
 # Storage
 STORAGE_PATH=/opt/tribhus_blog/uploads
 
-# MinIO/S3
+# MinIO/S3 — valor real em /root/.credenciais/ACESSOS.md, secao "MinIO Tribhus"
 MINIO_ACCESS_KEY=TribeUser2024
-MINIO_SECRET_KEY=S3cur3P@ssw0rd2000
+MINIO_SECRET_KEY=<ver ACESSOS.md>
 ```
 
 ### Frontend (via docker-compose)

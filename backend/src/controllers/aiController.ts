@@ -23,12 +23,22 @@ import {
 import { isTavilyConfigured } from '../services/news/tavilyService'
 import { WebhookPayload, BandData, CATEGORY_CONFIGS, CategoryConfig } from '../types/ai'
 
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'tribhus-webhook-secret-2025'
+// Sem fallback de propósito: este repositório é PÚBLICO. O valor que estava escrito aqui
+// ficava legível pra qualquer pessoa e permitia disparar geração de artigo por IA de
+// fora — queimando crédito da Claude API e publicando no blog. Rotacionado em
+// 29/07/2026.
+// Sem WEBHOOK_SECRET no ambiente, o webhook fica FECHADO (nega tudo) em vez de cair
+// num valor conhecido.
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET
 
 /**
  * Verifica se o webhook secret e valido
  */
 function validateWebhookSecret(req: Request): boolean {
+  if (!WEBHOOK_SECRET) {
+    console.error('[ai] WEBHOOK_SECRET nao configurado — webhook negado. Ver /root/.credenciais/ACESSOS.md')
+    return false
+  }
   const secret = req.headers['x-webhook-secret'] || req.headers['authorization']?.replace('Bearer ', '')
   return secret === WEBHOOK_SECRET
 }
