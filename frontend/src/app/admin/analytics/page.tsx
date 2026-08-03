@@ -93,11 +93,17 @@ export default function AnalyticsPage() {
       ) : (
         <>
           {/* KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <KpiCard
               title="Visualizações"
               value={(overview?.views ?? 0).toLocaleString('pt-BR')}
               delta={overview?.deltas?.views ?? null}
+            />
+            <KpiCard
+              title="Leitores de verdade"
+              value={(overview?.readers ?? 0).toLocaleString('pt-BR')}
+              delta={overview?.deltas?.readers ?? null}
+              hint="Quem ficou na página e leu. O resto abriu e saiu na hora."
             />
             <KpiCard
               title="Visitantes únicos"

@@ -646,16 +646,33 @@ export async function incrementViews(req: Request, res: Response) {
     // Nao bloqueamos a resposta: se falhar, o evento fica sem geo.
     if (!isBot && ip && ip !== 'unknown') {
       getLocation(ip)
-        .then((geo) => {
+        .then(async (geo) => {
           if (!geo) return
-          return prisma.blogPostView.update({
+
+          // Segunda camada de deteccao de bot: o user-agent mente, o IP nao.
+          // Crawler moderno (Alibaba Cloud, Baidu, Meta, Googlebot) chega com UA
+          // de Chrome comum e passa direto pelo BOT_REGEX. Como ele sai de
+          // datacenter ou VPN, o ip-api entrega isso em hosting/proxy.
+          // Reclassificamos o evento e devolvemos o ponto que ja tinha sido
+          // somado no contador publico do post.
+          const ehRobo = geo.hosting || geo.proxy
+
+          await prisma.blogPostView.update({
             where: { id: event.id },
             data: {
               country: geo.countryCode ? geo.countryCode.slice(0, 2) : null,
               region: geo.state ? geo.state.slice(0, 100) : null,
               city: geo.city ? geo.city.slice(0, 100) : null,
+              ...(ehRobo ? { isBot: true } : {}),
             },
           })
+
+          if (ehRobo) {
+            await prisma.blogPost.update({
+              where: { id },
+              data: { views: { decrement: 1 } },
+            })
+          }
         })
         .catch(() => {})
     }

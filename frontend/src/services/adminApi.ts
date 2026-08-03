@@ -477,6 +477,7 @@ export interface AnalyticsOverview {
   period: string
   views: number
   uniqueVisitors: number
+  readers: number // acessos que deram sinal de leitura (tempo ou scroll)
   avgTimeOnPage: number // segundos
   avgScrollDepth: number // %
   botViews: number
@@ -484,6 +485,7 @@ export interface AnalyticsOverview {
   deltas: {
     views: number | null
     uniqueVisitors: number | null
+    readers: number | null
     avgTimeOnPage: number | null
     avgScrollDepth: number | null
   } | null

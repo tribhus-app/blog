@@ -15,6 +15,16 @@ export interface GeoLocation {
   countryCode: string | null
   lat?: number
   lon?: number
+  /**
+   * IP de datacenter/hospedagem ou de VPN/proxy. Crawler que se apresenta com
+   * user-agent de Chrome comum escapa do BOT_REGEX, mas nao consegue esconder
+   * de onde sai: Alibaba Cloud, Baidu, Meta e Googlebot cairam todos aqui.
+   * Ver utils/analytics.ts e o filtro is_bot do analytics.
+   */
+  hosting: boolean
+  proxy: boolean
+  /** ASN + nome da rede (ex: "AS15169 Google LLC"), so para auditoria. */
+  asn: string | null
 }
 
 interface IpApiResponse {
@@ -27,6 +37,9 @@ interface IpApiResponse {
   lat: number
   lon: number
   query: string
+  hosting?: boolean
+  proxy?: boolean
+  as?: string
 }
 
 const CACHE_TTL = 24 * 60 * 60 * 1000 // 24h
@@ -73,7 +86,7 @@ export async function getLocation(ip: string): Promise<GeoLocation | null> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 5000)
 
-    const url = `${API_URL}/${encodeURIComponent(ip)}?fields=status,country,countryCode,region,regionName,city,lat,lon,query`
+    const url = `${API_URL}/${encodeURIComponent(ip)}?fields=status,country,countryCode,region,regionName,city,lat,lon,query,hosting,proxy,as`
 
     let data: IpApiResponse
     try {
@@ -93,6 +106,9 @@ export async function getLocation(ip: string): Promise<GeoLocation | null> {
       countryCode: data.countryCode || null,
       lat: data.lat,
       lon: data.lon,
+      hosting: data.hosting === true,
+      proxy: data.proxy === true,
+      asn: data.as || null,
     }
 
     cache.set(ip, location)

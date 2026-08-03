@@ -42,3 +42,8 @@ uploads/
 # RAR archives
 *.rar
 CLAUDE.md
+
+# Copias de seguranca do .env feitas na mao. Este repositorio e PUBLICO —
+# senha de banco e token nao entram aqui em hipotese nenhuma.
+.env.bak*
+backend/.env.bak*

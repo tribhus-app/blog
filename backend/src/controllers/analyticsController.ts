@@ -27,10 +27,16 @@ export async function getOverview(req: Request, res: Response) {
     const kpiFor = async (from: Date | null, to: Date | null) => {
       const fromC = from ? Prisma.sql`AND viewed_at >= ${from}` : Prisma.empty
       const toC = to ? Prisma.sql`AND viewed_at < ${to}` : Prisma.empty
+      // "readers" = acesso que deu sinal de vida (o beacon de saida mandou tempo
+      // ou scroll). Robo que escapa das duas camadas de deteccao abre a pagina e
+      // some, entao nunca aparece aqui. E o numero mais honesto de audiencia.
       const rows = await prisma.$queryRaw<any[]>`
         SELECT
           COUNT(*)::int                                              AS views,
           COUNT(DISTINCT COALESCE(session_id, ip))::int             AS uniques,
+          COUNT(*) FILTER (
+            WHERE time_on_page IS NOT NULL OR scroll_depth IS NOT NULL
+          )::int                                                     AS readers,
           COALESCE(ROUND(AVG(time_on_page))::int, 0)                AS avg_time,
           COALESCE(ROUND(AVG(scroll_depth))::int, 0)                AS avg_scroll
         FROM blog_post_views
@@ -62,6 +68,7 @@ export async function getOverview(req: Request, res: Response) {
       period,
       views: n(current.views),
       uniqueVisitors: n(current.uniques),
+      readers: n(current.readers),
       avgTimeOnPage: n(current.avg_time),
       avgScrollDepth: n(current.avg_scroll),
       botViews: n(botRows[0]?.bots),
@@ -70,6 +77,7 @@ export async function getOverview(req: Request, res: Response) {
         ? {
             views: delta(n(current.views), n(previous.views)),
             uniqueVisitors: delta(n(current.uniques), n(previous.uniques)),
+            readers: delta(n(current.readers), n(previous.readers)),
             avgTimeOnPage: delta(n(current.avg_time), n(previous.avg_time)),
             avgScrollDepth: delta(n(current.avg_scroll), n(previous.avg_scroll)),
           }
