@@ -1,9 +1,17 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import LayoutWrapper from '@/components/layout/LayoutWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
+
+// GA4 — MESMA propriedade do tribhus.com.br (224591904), de propósito: é o que deixa
+// visível a jornada blog -> site (post lido -> cadastro). Duas propriedades separadas
+// dariam dois relatórios que nunca se cruzam, e o blog nunca receberia o crédito.
+// Exige medição entre domínios ligada no GA4 (Admin -> Fluxos de dados -> Configurar
+// domínios), senão quem vai do blog pro site conta como visitante novo.
+const GA4_ID = 'G-5MXSFYGFSF'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://blog.tribhus.com.br'),
@@ -88,10 +96,14 @@ export default function RootLayout({
               name: 'Tribhus',
               url: 'https://tribhus.com.br',
               logo: 'https://blog.tribhus.com.br/images/logo.png',
+              // Tem que bater com o sameAs do site (tribhus_next/lib/seo/jsonld.ts).
+              // Handles diferentes nos dois fazem o buscador nao saber qual perfil e da
+              // empresa. Mesma lista, mesma ordem, com www para casar exatamente.
               sameAs: [
-                'https://instagram.com/tribhusbr',
-                'https://facebook.com/tribhusbr',
+                'https://www.instagram.com/tribhusbr',
+                'https://www.facebook.com/tribhusbr',
                 'https://www.youtube.com/@tribhus5311',
+                'https://play.google.com/store/apps/details?id=com.tribhus',
               ],
               contactPoint: {
                 '@type': 'ContactPoint',
@@ -123,6 +135,16 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <LayoutWrapper>{children}</LayoutWrapper>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-gtag" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA4_ID}');`}
+        </Script>
       </body>
     </html>
   )
