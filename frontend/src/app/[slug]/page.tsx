@@ -110,6 +110,16 @@ export default async function PostPage({ params }: PageProps) {
 
   const category = post.category || { name: 'Sem categoria', slug: 'sem-categoria', color: '#914100' }
   const author = post.author || { name: 'Tribhus', bio: '', avatar: '' }
+
+  // O schema declarava Organization para TODO post, inclusive nos 40 assinados por
+  // pessoa fisica (Fernando: 38, Giulia Furlan: 2) — o dado contradizia o que a pagina
+  // mostrava. O Google aceita os dois tipos, entao isso nao quebra nada; e questao de o
+  // dado ser verdadeiro, que e o que pesa em E-E-A-T e para quem le o JSON-LD.
+  // "Tribhus" e "Admin Tribhus" sao a marca, nao pessoa. "Tribhus IA" e marcado is_ai.
+  const nomeDoAutor = (author.name || '').trim()
+  const autorEhPessoa =
+    !(author as { isAi?: boolean }).isAi &&
+    !/^(tribhus|admin tribhus|tribhus ia)$/i.test(nomeDoAutor)
   const tags = post.tags || []
   return (
     <>
@@ -124,10 +134,13 @@ export default async function PostPage({ params }: PageProps) {
             '@context': 'https://schema.org',
             '@type': 'Article',
             headline: post.title,
-            description: post.excerpt,
-            image: post.coverImage,
+            // Omitir a chave quando o dado nao existe, em vez de emitir null: 38 posts
+            // sem excerpt e 1 sem capa mandavam `null` para um campo que o Google
+            // espera como texto.
+            ...(post.excerpt ? { description: post.excerpt } : {}),
+            ...(post.coverImage ? { image: post.coverImage } : {}),
             author: {
-              '@type': 'Organization',
+              '@type': autorEhPessoa ? 'Person' : 'Organization',
               name: author.name,
             },
             publisher: {

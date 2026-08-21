@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { imagePresets } from '@/lib/imagePresets'
 import { Fragment } from 'react'
 import DOMPurify from 'isomorphic-dompurify'
+import LiteYouTube from './LiteYouTube'
 
 interface PostContentProps {
   content: string
@@ -185,7 +186,36 @@ export default function PostContent({ content }: PostContentProps) {
                       /<a[^>]*href=["'](?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})[^"']*["'][^>]*>[^<]*<\/a>/gi,
                       '<div class="video-container my-6"><iframe class="w-full aspect-video rounded-lg" src="https://www.youtube-nocookie.com/embed/$1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>'
                    )
-                   return <div key={key} dangerouslySetInnerHTML={{ __html: sanitize(videoBlock) }} />
+                   // Em vez de despejar o <iframe> na pagina, troca cada video por uma
+                   // miniatura que so carrega o player no clique. Cada iframe do YouTube
+                   // custava ~950 KB a 1,4 MB e 180-300 ms de travamento, mesmo sem
+                   // ninguem apertar o play (medido em 21/08/2026). O texto que
+                   // porventura acompanhe o bloco continua sendo renderizado normalmente.
+                   const pedacos = videoBlock.split(
+                     /(<iframe[^>]*src=["'][^"']*(?:youtube\.com|youtube-nocookie\.com)\/embed\/[^"']*["'][^>]*>\s*<\/iframe>)/i
+                   )
+                   return (
+                     <Fragment key={key}>
+                       {pedacos.map((pedaco, pIndex) => {
+                         const idDoVideo = pedaco.match(
+                           /\/embed\/([a-zA-Z0-9_-]{11})/
+                         )?.[1]
+                         if (idDoVideo) {
+                           return <LiteYouTube key={`yt-${pIndex}`} id={idDoVideo} />
+                         }
+                         // Sobra do HTML em volta (a <div class="video-container">
+                         // vazia, por exemplo). So renderiza se tiver conteudo de fato.
+                         const limpo = sanitize(pedaco)
+                         if (!limpo.replace(/<[^>]*>/g, '').trim()) return null
+                         return (
+                           <div
+                             key={`txt-${pIndex}`}
+                             dangerouslySetInnerHTML={{ __html: limpo }}
+                           />
+                         )
+                       })}
+                     </Fragment>
+                   )
                 }
 
                 // Standard Paragraph

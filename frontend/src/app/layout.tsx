@@ -15,10 +15,23 @@ const GA4_ID = 'G-5MXSFYGFSF'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://blog.tribhus.com.br'),
-  title: {
-    default: 'Tribhus Blog | Rock Underground e Independente',
-    template: '%s | Tribhus Blog',
-  },
+  // SEM `template` de proposito (removido em 21/08/2026, auditoria de SEO).
+  //
+  // O sufixo ' | Tribhus Blog' custava 15 caracteres em TODO post. Medido sobre os 353:
+  // mediana de 71 caracteres, e so 43 (12%) cabiam nos ~60 que o Google mostra. Sem o
+  // sufixo a mediana cai para 56 e 343 dos 353 passam a caber. Encurtar para
+  // ' | Tribhus' resolveria so 78 — o problema e o sufixo existir, nao o tamanho dele.
+  // A marca ja aparece no dominio dentro do resultado de busca.
+  //
+  // Bonus: /tag e /categoria JA escreviam ' | Tribhus Blog' no proprio texto, entao o
+  // template duplicava ('Posts sobre Punk | Tribhus Blog | Tribhus Blog').
+  //
+  // Se for reintroduzir, meca antes o tamanho real dos titulos com as entidades HTML
+  // decodificadas — medir no HTML cru infla o numero.
+  // Titulo simples (string), NAO o formato de objeto: o TypeScript exige `template`
+  // dentro do objeto, e template e exatamente o que nao queremos aqui. Assim a home usa
+  // este titulo e cada pagina filha define o seu, sem sufixo herdado.
+  title: 'Tribhus Blog | Rock Underground e Independente',
   description: 'O melhor conteudo sobre rock underground e independente. Noticias, lancamentos, entrevistas, reviews e muito mais do cenario musical alternativo brasileiro.',
   keywords: [
     'rock underground',

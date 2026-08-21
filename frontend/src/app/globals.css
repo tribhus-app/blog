@@ -197,9 +197,15 @@ div.video-container {
   background-color: #0f1419 !important;
 }
 
+/* O botao da miniatura (LiteYouTube) entra na MESMA regra do iframe. Sem isto ele
+   nao era posicionado de forma absoluta, escapava da caixa de proporcao criada pelo
+   `padding-bottom` acima e sobrava um vazio embaixo do video. */
 .prose .video-container iframe,
 .video-container iframe,
-div.video-container iframe {
+div.video-container iframe,
+.prose .video-container > button,
+.video-container > button,
+div.video-container > button {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;

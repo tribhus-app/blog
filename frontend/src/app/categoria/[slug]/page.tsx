@@ -8,7 +8,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 async function getCategory(slug: string): Promise<Category | null> {
   try {
     const res = await fetch(`${API_URL}/api/categories/${slug}`, {
-      cache: 'no-store',
+      // ISR de 60s em vez de `cache: 'no-store'` (21/08/2026, auditoria de SEO).
+      // Com no-store a pagina vira dinamica e o Next devolve
+      // `Cache-Control: private, no-cache, no-store, must-revalidate`, que DESLIGA o
+      // cache de voltar/avancar do navegador. Num blog, onde a pessoa entra num post e
+      // volta para a lista, cada "voltar" recarregava tudo. 60s e o mesmo intervalo que
+      // a pagina de post ja usava.
+      next: { revalidate: 60 },
     })
     if (!res.ok) return null
     const json = await res.json()
@@ -22,7 +28,13 @@ async function getCategory(slug: string): Promise<Category | null> {
 async function getCategories(): Promise<Category[]> {
   try {
     const res = await fetch(`${API_URL}/api/categories`, {
-      cache: 'no-store',
+      // ISR de 60s em vez de `cache: 'no-store'` (21/08/2026, auditoria de SEO).
+      // Com no-store a pagina vira dinamica e o Next devolve
+      // `Cache-Control: private, no-cache, no-store, must-revalidate`, que DESLIGA o
+      // cache de voltar/avancar do navegador. Num blog, onde a pessoa entra num post e
+      // volta para a lista, cada "voltar" recarregava tudo. 60s e o mesmo intervalo que
+      // a pagina de post ja usava.
+      next: { revalidate: 60 },
     })
     if (!res.ok) return []
     const json = await res.json()
@@ -36,7 +48,13 @@ async function getCategories(): Promise<Category[]> {
 async function getPostsByCategory(categoryId: string): Promise<{ posts: Post[], total: number }> {
   try {
     const res = await fetch(`${API_URL}/api/posts?categoryId=${categoryId}&limit=50`, {
-      cache: 'no-store',
+      // ISR de 60s em vez de `cache: 'no-store'` (21/08/2026, auditoria de SEO).
+      // Com no-store a pagina vira dinamica e o Next devolve
+      // `Cache-Control: private, no-cache, no-store, must-revalidate`, que DESLIGA o
+      // cache de voltar/avancar do navegador. Num blog, onde a pessoa entra num post e
+      // volta para a lista, cada "voltar" recarregava tudo. 60s e o mesmo intervalo que
+      // a pagina de post ja usava.
+      next: { revalidate: 60 },
     })
     if (!res.ok) return { posts: [], total: 0 }
     const json = await res.json()
@@ -71,9 +89,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: category.description || `Artigos sobre ${category.name}`,
       url: `https://blog.tribhus.com.br/categoria/${category.slug}`,
       type: 'website',
+      // Ao definir `openGraph` aqui, o Next SUBSTITUI o bloco do layout inteiro — e a
+      // imagem padrao se perdia junto. Eram 42 tags e 8 categorias indo para o WhatsApp
+      // e o Instagram sem miniatura nenhuma (auditoria de 21/08/2026).
+      images: ['/images/og-image.jpg'],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
+      images: ['/images/og-image.jpg'],
       title: `${category.name} | Tribhus Blog`,
       description: category.description || `Artigos sobre ${category.name}`,
     },

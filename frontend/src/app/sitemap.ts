@@ -20,14 +20,22 @@ async function getAllPosts(): Promise<{ slug: string; updatedAt: string }[]> {
   }
 }
 
-async function getAllCategories(): Promise<{ slug: string }[]> {
+async function getIndexableCategories(): Promise<{ slug: string }[]> {
   try {
     const res = await fetch(`${API_URL}/api/categories`, {
       cache: 'no-store',
     })
     if (!res.ok) return []
     const json = await res.json()
-    return json.data || json || []
+    const categories = json.data || json || []
+    // Mesmo piso de 3 posts que as tags ja aplicavam. Sem ele entravam
+    // /categoria/tecnologia (2 posts, 113 palavras) e /categoria/novidades (3 posts,
+    // 163 palavras) — as duas paginas mais rasas do blog, e o Google ja indexou a
+    // primeira. Categoria sem massa e pagina de passagem, nao pagina de destino.
+    // Se `postCount` nao vier da API, mantem a categoria (nao derrubar por falta de dado).
+    return categories.filter(
+      (c: { postCount?: number }) => c.postCount === undefined || c.postCount >= 3
+    )
   } catch (error) {
     console.error('Sitemap: error fetching categories:', error)
     return []
@@ -54,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const [posts, categories, tags] = await Promise.all([
     getAllPosts(),
-    getAllCategories(),
+    getIndexableCategories(),
     getIndexableTags(),
   ])
 
@@ -66,17 +74,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 1,
     },
+    // /sobre e /contato foram REMOVIDAS em 21/08/2026: estavam escritas aqui na mao,
+    // mas nao existe rota `app/sobre` nem `app/contato` no projeto — nunca existiram.
+    // O Google confirmava 404 em /sobre desde 31/05/2026 e nunca chegou a buscar
+    // /contato. Se um dia as paginas forem criadas, e so devolver estas linhas.
     {
-      url: `${baseUrl}/sobre`,
+      // Estava indexada, linkada no site e com impressao real na busca, mas fora do
+      // sitemap.
+      url: `${baseUrl}/arquivo`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/contato`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
+      changeFrequency: 'daily',
+      priority: 0.6,
     },
   ]
 

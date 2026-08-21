@@ -12,7 +12,13 @@ interface TagWithCount extends Tag {
 async function getAllTags(): Promise<TagWithCount[]> {
   try {
     const res = await fetch(`${API_URL}/api/tags`, {
-      cache: 'no-store',
+      // ISR de 60s em vez de `cache: 'no-store'` (21/08/2026, auditoria de SEO).
+      // Com no-store a pagina vira dinamica e o Next devolve
+      // `Cache-Control: private, no-cache, no-store, must-revalidate`, que DESLIGA o
+      // cache de voltar/avancar do navegador. Num blog, onde a pessoa entra num post e
+      // volta para a lista, cada "voltar" recarregava tudo. 60s e o mesmo intervalo que
+      // a pagina de post ja usava.
+      next: { revalidate: 60 },
     })
     if (!res.ok) return []
     const json = await res.json()
@@ -36,7 +42,13 @@ async function getTagBySlug(slug: string): Promise<TagWithCount | null> {
 async function getPostsByTag(slug: string): Promise<{ posts: Post[]; tag: Tag | null }> {
   try {
     const res = await fetch(`${API_URL}/api/tags/${slug}/posts?limit=50`, {
-      cache: 'no-store',
+      // ISR de 60s em vez de `cache: 'no-store'` (21/08/2026, auditoria de SEO).
+      // Com no-store a pagina vira dinamica e o Next devolve
+      // `Cache-Control: private, no-cache, no-store, must-revalidate`, que DESLIGA o
+      // cache de voltar/avancar do navegador. Num blog, onde a pessoa entra num post e
+      // volta para a lista, cada "voltar" recarregava tudo. 60s e o mesmo intervalo que
+      // a pagina de post ja usava.
+      next: { revalidate: 60 },
     })
     if (!res.ok) return { posts: [], tag: null }
     const json = await res.json()
@@ -79,9 +91,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: `https://blog.tribhus.com.br/tag/${tag.slug}`,
       type: 'website',
+      // Ao definir `openGraph` aqui, o Next SUBSTITUI o bloco do layout inteiro — e a
+      // imagem padrao se perdia junto. Eram 42 tags e 8 categorias indo para o WhatsApp
+      // e o Instagram sem miniatura nenhuma (auditoria de 21/08/2026).
+      images: ['/images/og-image.jpg'],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
+      images: ['/images/og-image.jpg'],
       title,
       description,
     },

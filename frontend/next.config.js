@@ -32,6 +32,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        // O mesmo artigo existia em dois enderecos, os dois pedindo canonical para si
+        // mesmos. O slug abaixo carrega no proprio endereco o resto de uma entidade
+        // HTML escapada duas vezes ("and8220" = &#8220;), heranca da migracao do
+        // WordPress. O post duplicado virou rascunho em 21/08/2026 — este 301 preserva
+        // quem chegar pelo link velho.
+        source: '/conheca-a-and8220revolucaoand8221-sonora-do-musico-samyr-rathge',
+        destination: '/conheca-a-revolucao-sonora-do-musico-samyr-rathge',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       // Cache agressivo para assets estáticos do Next.js
@@ -77,6 +91,21 @@ const nextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+          // Adicionados em 21/08/2026 (auditoria de SEO). CSP ficou de fora de
+          // proposito: a pagina carrega embed de YouTube e Google Tag Manager, entao
+          // precisa entrar primeiro em modo report-only para nao quebrar o blog.
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
           },
         ],
       },
