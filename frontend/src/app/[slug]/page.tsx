@@ -4,6 +4,7 @@ import Image from 'next/image'
 import PostCard from '@/components/posts/PostCard'
 import ShareButtons from '@/components/posts/ShareButtons'
 import PostContent from '@/components/posts/PostContent'
+import LinkParaGenero from '@/components/posts/LinkParaGenero'
 import ViewTracker from '@/components/posts/ViewTracker'
 import { Post } from '@/types'
 import { imagePresets } from '@/lib/imagePresets'
@@ -301,6 +302,8 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* Content */}
         <div className="max-w-5xl mx-auto px-4 py-12">
+          {/* So aparece nos posts-guia de genero. Ver lib/generoDoSite.ts. */}
+          <LinkParaGenero slug={post.slug} />
           <PostContent content={post.content} />
 
           {/* Tags */}

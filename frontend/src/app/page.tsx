@@ -93,9 +93,11 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero - Featured Post */}
+      {/* Hero - Featured Post.
+          Mais largo que o resto da pagina de proposito: e o elemento principal.
+          O restante do conteudo segue em max-w-7xl. */}
       {mappedFeatured && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 md:pt-10">
+        <section className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 pt-6 md:pt-10">
           <FeaturedPost post={mappedFeatured} />
         </section>
       )}

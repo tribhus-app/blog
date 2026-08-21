@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Post } from '@/types'
 import { imagePresets } from '@/lib/imagePresets'
+import { categoriaDoPost } from '@/lib/postFallbacks'
 
 interface FeaturedPostProps {
   post: Post
@@ -20,7 +21,12 @@ export default function FeaturedPost({ post }: FeaturedPostProps) {
   return (
     <article className="group relative">
       <Link href={`/${post.slug}`} className="block">
-        <div className="relative aspect-[16/9] md:aspect-[21/9] rounded-3xl overflow-hidden">
+        {/* Proporcao por tamanho de tela. No celular era 16/9 e o conteudo NAO cabia:
+            o titulo saia cortado no topo, o resumo desaparecia e o botao "Ler artigo"
+            ficava fora da caixa, deixando o destaque menor e mais pobre que um card
+            comum da lista. Retrato 4/5 no celular resolve. No computador 21/9 era uma
+            faixa fina demais para o elemento principal da pagina. */}
+        <div className="relative aspect-[4/5] sm:aspect-[16/9] lg:aspect-[2/1] rounded-3xl overflow-hidden">
           {post.coverImage ? (
             <Image
               src={post.coverImage}
@@ -45,21 +51,21 @@ export default function FeaturedPost({ post }: FeaturedPostProps) {
               <div className="flex items-center gap-3 mb-4">
                 <span
                   className="text-sm font-medium"
-                  style={{ color: post.category.color }}
+                  style={{ color: categoriaDoPost(post).color }}
                 >
-                  {post.category.name}
+                  {categoriaDoPost(post).name}
                 </span>
                 <span className="w-1 h-1 rounded-full bg-white/40" />
                 <span className="text-white/60 text-sm">{formatDate(post.publishedAt)}</span>
               </div>
 
               {/* Título */}
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight group-hover:text-primary-light transition-colors duration-300">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight group-hover:text-primary-light transition-colors duration-300">
                 {post.title}
               </h1>
 
               {/* Excerpt */}
-              <p className="text-white/70 text-base md:text-lg mb-6 line-clamp-2 max-w-2xl">
+              <p className="text-white/70 text-base md:text-lg mb-6 line-clamp-2 md:line-clamp-3 max-w-2xl">
                 {post.excerpt}
               </p>
 
@@ -89,7 +95,9 @@ export default function FeaturedPost({ post }: FeaturedPostProps) {
                   </div>
                 </div>
 
-                <span className="hidden md:flex items-center gap-2 text-primary-light font-medium group-hover:gap-3 transition-all">
+                {/* Aparecia so no computador. Agora que a caixa cabe o conteudo inteiro
+                    no celular, a chamada aparece nos dois. */}
+                <span className="flex items-center gap-2 text-primary-light font-medium group-hover:gap-3 transition-all">
                   Ler artigo
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
