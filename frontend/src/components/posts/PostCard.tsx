@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Post } from '@/types'
 import { imagePresets } from '@/lib/imagePresets'
+import { categoriaDoPost } from '@/lib/postFallbacks'
 
 interface PostCardProps {
   post: Post
@@ -42,9 +43,9 @@ export default function PostCard({ post, variant = 'default', showExcerpt = true
             <div className="absolute bottom-0 left-0 right-0 p-6">
               <span
                 className="inline-block text-xs font-medium px-3 py-1 rounded-full mb-3"
-                style={{ backgroundColor: post.category.color, color: '#fff' }}
+                style={{ backgroundColor: categoriaDoPost(post).color, color: '#fff' }}
               >
-                {post.category.name}
+                {categoriaDoPost(post).name}
               </span>
               <h2 className="text-xl md:text-2xl font-bold text-white mb-2 group-hover:text-primary-light transition-colors">
                 {post.title}
@@ -76,7 +77,7 @@ export default function PostCard({ post, variant = 'default', showExcerpt = true
             )}
           </div>
           <div className="flex-1 pt-1">
-            <span className="text-xs text-primary-light font-medium">{post.category.name}</span>
+            <span className="text-xs text-primary-light font-medium">{categoriaDoPost(post).name}</span>
             <h3 className="text-white font-medium mt-1 line-clamp-2 group-hover:text-primary-light transition-colors">
               {post.title}
             </h3>
@@ -95,7 +96,7 @@ export default function PostCard({ post, variant = 'default', showExcerpt = true
           <div className="flex items-center gap-3 mb-2">
             <span
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: post.category.color }}
+              style={{ backgroundColor: categoriaDoPost(post).color }}
             />
             <span className="text-xs text-text-muted">{formatDate(post.publishedAt)}</span>
           </div>
@@ -136,9 +137,9 @@ export default function PostCard({ post, variant = 'default', showExcerpt = true
           <div className="flex items-center gap-3 mb-2">
             <span
               className="text-xs font-medium"
-              style={{ color: post.category.color }}
+              style={{ color: categoriaDoPost(post).color }}
             >
-              {post.category.name}
+              {categoriaDoPost(post).name}
             </span>
             <span className="text-text-muted text-xs">{formatDate(post.publishedAt)}</span>
           </div>
