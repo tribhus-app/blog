@@ -31,8 +31,12 @@ async function getRelatedPosts(categoryId: string, currentPostId: string): Promi
     })
     if (!res.ok) return []
     const data = await res.json()
+    // A API responde { data: [...], pagination: {...} }. Ler `data.posts` devolvia
+    // undefined e o bloco "Leia tambem" nunca renderizava — nenhum post do blog
+    // tinha link interno por causa disso.
+    const lista: Post[] = data.data || data.posts || []
     // Filter out current post
-    return (data.posts || []).filter((p: Post) => p.id !== currentPostId).slice(0, 2)
+    return lista.filter((p: Post) => p.id !== currentPostId).slice(0, 2)
   } catch (error) {
     console.error('Error fetching related posts:', error)
     return []
@@ -62,12 +66,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       publishedTime: post.publishedAt,
       modifiedTime: post.updatedAt,
       authors: [post.author?.name || 'Tribhus'],
+      // Sem width/height fixos de proposito: a capa nem sempre e 1200x630 (arte de
+      // single costuma ser quadrada) e declarar dimensao errada e pior que nao
+      // declarar — o crawler confia no metadado e corta a previa errado.
       images: post.coverImage
         ? [
             {
               url: post.coverImage,
-              width: 1200,
-              height: 630,
               alt: post.title,
             },
           ]
@@ -139,6 +144,37 @@ export default async function PostPage({ params }: PageProps) {
               '@type': 'WebPage',
               '@id': `https://blog.tribhus.com.br/${post.slug}`,
             },
+          }),
+        }}
+      />
+
+      {/* JSON-LD BreadcrumbList — o post ja tinha breadcrumb visual sem schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: 'https://blog.tribhus.com.br',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: category.name,
+                item: `https://blog.tribhus.com.br/categoria/${category.slug}`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: post.title,
+                item: `https://blog.tribhus.com.br/${post.slug}`,
+              },
+            ],
           }),
         }}
       />
