@@ -18,7 +18,11 @@
  * Os destinos foram conferidos um a um em 21/08/2026: todos respondem 200 e têm bandas
  * cadastradas. Antes de acrescentar um par novo, abrir a página e conferir.
  */
-export const GENERO_NO_SITE: Record<string, { slug: string; nome: string }> = {
+// `path` opcional: destino que nao e /genero/<slug>. Usado pelo post de rock nacional,
+// que manda para o mapa do rock brasileiro do site (/rock-nacional, criado em 11/09/2026,
+// ver /opt/tribhus_next/PLANO-SEO-2026-09.md frente 3).
+export const GENERO_NO_SITE: Record<string, { slug: string; nome: string; path?: string }> = {
+  'rock-nacional': { slug: 'rock-nacional', nome: 'rock nacional', path: '/rock-nacional' },
   'bandas-de-black-metal': { slug: 'black-metal', nome: 'black metal' },
   'bandas-de-death-metal': { slug: 'death-metal', nome: 'death metal' },
   'bandas-de-grunge': { slug: 'grunge', nome: 'grunge' },

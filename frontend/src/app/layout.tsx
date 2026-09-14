@@ -120,7 +120,7 @@ export default function RootLayout({
               ],
               contactPoint: {
                 '@type': 'ContactPoint',
-                email: 'contato@tribhus.com.br',
+                email: 'contato@tribhus.com',
                 contactType: 'customer service',
               },
             }),
