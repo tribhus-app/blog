@@ -116,8 +116,18 @@ export default function RootLayout({
                 'https://www.instagram.com/tribhusbr',
                 'https://www.facebook.com/tribhusbr',
                 'https://www.youtube.com/@tribhus5311',
+                'https://www.linkedin.com/company/tribhusbr/',
                 'https://play.google.com/store/apps/details?id=com.tribhus',
               ],
+              // Fundacao e sede: mesmos valores do site (tribhus_next/lib/seo/jsonld.ts)
+              // e da pagina do LinkedIn. Informados pelo William em 09/10/2026.
+              foundingDate: '2020-05',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Limeira',
+                addressRegion: 'SP',
+                addressCountry: 'BR',
+              },
               contactPoint: {
                 '@type': 'ContactPoint',
                 email: 'contato@tribhus.com',
