@@ -38,7 +38,7 @@ export default function SEOPanel({
   const titleProgress = Math.min((titleLength / 60) * 100, 100)
   const descriptionProgress = Math.min((descriptionLength / 160) * 100, 100)
 
-  const fullUrl = `https://blog.tribhus.com.br/${slug}`
+  const fullUrl = `https://tribhus.com/blog/${slug}`
 
   const onDropOgImage = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -165,7 +165,7 @@ export default function SEOPanel({
             </label>
             <div className="flex items-center">
               <span className="px-4 py-2 bg-dark border border-r-0 border-border rounded-l-lg text-text-muted text-sm">
-                blog.tribhus.com.br/
+                tribhus.com/blog/
               </span>
               <input
                 type="text"

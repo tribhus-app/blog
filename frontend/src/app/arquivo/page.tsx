@@ -4,14 +4,24 @@ import { Post } from '@/types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
-export const metadata: Metadata = {
-  title: 'Arquivo | Tribhus Blog',
-  description: 'Todos os artigos do Tribhus Blog sobre rock underground e independente.',
+// Canonico proprio (20/10/2026): sem ele a pagina herdava o do layout, que aponta para a home,
+// e o Google ignorava o arquivo inteiro, que e o unico lugar com caminho para todos os posts.
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const pagina = Math.max(1, parseInt(searchParams.page || '1') || 1)
+  const url = `https://tribhus.com/blog/arquivo${pagina > 1 ? `?page=${pagina}` : ''}`
+  const title = `Arquivo${pagina > 1 ? ` (página ${pagina})` : ''} | Tribhus Blog`
+  const description = 'Todos os artigos do Tribhus Blog sobre rock underground e independente.'
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: { title, description, url, type: 'website', images: ['/images/og-image.jpg'] },
+  }
 }
 
 async function getAllPosts(page: number = 1): Promise<{ posts: Post[], total: number, totalPages: number }> {
   try {
-    const res = await fetch(`${API_URL}/api/posts?page=${page}&limit=12`, {
+    const res = await fetch(`${API_URL}/api/posts?page=${page}&limit=24`, {
       cache: 'no-store',
     })
     if (!res.ok) return { posts: [], total: 0, totalPages: 0 }
@@ -41,11 +51,11 @@ export default async function ArquivoPage({ searchParams }: PageProps) {
       <section className="py-12 border-b border-border">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-2 text-sm text-text-muted mb-4">
-            <a href="/" className="hover:text-white transition-colors">Inicio</a>
+            <a href="/blog" className="hover:text-white transition-colors">Início</a>
             <span>/</span>
             <span className="text-white">Arquivo</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Todas as Publicacoes</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Todas as Publicações</h1>
           <p className="text-text-secondary">
             {total} {total === 1 ? 'artigo publicado' : 'artigos publicados'}
           </p>
@@ -67,7 +77,7 @@ export default async function ArquivoPage({ searchParams }: PageProps) {
               <div className="flex items-center justify-center gap-2 mt-12">
                 {currentPage > 1 && (
                   <a
-                    href={`/arquivo?page=${currentPage - 1}`}
+                    href={`/blog/arquivo?page=${currentPage - 1}`}
                     className="px-4 py-2 bg-dark-card border border-border rounded-lg text-text-secondary hover:text-white hover:border-primary transition-all"
                   >
                     Anterior
@@ -90,7 +100,7 @@ export default async function ArquivoPage({ searchParams }: PageProps) {
                     return (
                       <a
                         key={pageNum}
-                        href={`/arquivo?page=${pageNum}`}
+                        href={`/blog/arquivo?page=${pageNum}`}
                         className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all ${
                           pageNum === currentPage
                             ? 'bg-primary text-white'
@@ -105,10 +115,10 @@ export default async function ArquivoPage({ searchParams }: PageProps) {
 
                 {currentPage < totalPages && (
                   <a
-                    href={`/arquivo?page=${currentPage + 1}`}
+                    href={`/blog/arquivo?page=${currentPage + 1}`}
                     className="px-4 py-2 bg-dark-card border border-border rounded-lg text-text-secondary hover:text-white hover:border-primary transition-all"
                   >
-                    Proxima
+                    Próxima
                   </a>
                 )}
               </div>
@@ -118,7 +128,7 @@ export default async function ArquivoPage({ searchParams }: PageProps) {
           <div className="text-center py-16">
             <p className="text-text-muted text-lg">Nenhum artigo encontrado.</p>
             <a
-              href="/"
+              href="/blog"
               className="inline-block mt-4 text-primary-light hover:text-primary-hover transition-colors"
             >
               Voltar para o inicio

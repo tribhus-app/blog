@@ -7,7 +7,7 @@ import { Post, Category } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Tribhus Blog | Rock Underground e Independente',
-  description: 'O melhor conteudo sobre rock underground e independente. Noticias, lancamentos, entrevistas, reviews e muito mais do cenario musical alternativo.',
+  description: 'O melhor conteúdo sobre rock underground e independente. Notícias, lançamentos, entrevistas, reviews e muito mais do cenário musical alternativo.',
 }
 
 function mapCategoryToType(category: CategoryResponse): Category {
@@ -27,7 +27,7 @@ function mapPostToType(post: PostResponse): Post {
     slug: post.slug,
     excerpt: post.excerpt || '',
     content: post.content,
-    coverImage: post.coverImage || '/images/placeholder-1.jpg',
+    coverImage: post.coverImage || '/blog/images/placeholder-1.jpg',
     category: post.category ? mapCategoryToType(post.category) : { id: '', name: 'Sem categoria', slug: 'sem-categoria', description: '', color: '#914100' },
     author: post.author ? {
       id: post.author.id,
@@ -106,9 +106,9 @@ export default async function HomePage() {
       {!hasContent && (
         <section className="max-w-4xl mx-auto px-4 py-20 text-center">
           <div className="py-16">
-            <h2 className="text-3xl font-bold text-white mb-4">Em breve novos conteudos</h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Em breve novos conteúdos</h2>
             <p className="text-text-secondary text-lg max-w-xl mx-auto">
-              Estamos preparando artigos incriveis sobre o cenario rock underground e independente.
+              Estamos preparando artigos incríveis sobre o cenário rock underground e independente.
             </p>
           </div>
         </section>
@@ -141,7 +141,7 @@ export default async function HomePage() {
               {recentPosts.length > 0 && (
                 <>
                   <div className="flex items-baseline justify-between mb-8">
-                    <h2 className="text-2xl font-bold text-white">Ultimas publicacoes</h2>
+                    <h2 className="text-2xl font-bold text-white">Últimas publicações</h2>
                     <Link
                       href="/arquivo"
                       className="text-text-muted hover:text-primary-light transition-colors text-sm"
@@ -188,10 +188,10 @@ export default async function HomePage() {
               <div>
                 <p className="text-text-secondary leading-relaxed">
                   O <span className="text-white font-medium">Tribhus Blog</span> traz noticias,
-                  reviews e entrevistas do cenario rock underground e independente brasileiro.
+                  reviews e entrevistas do cenário rock underground e independente brasileiro.
                 </p>
                 <Link
-                  href="https://tribhus.com.br"
+                  href="https://tribhus.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-primary-light hover:text-primary-hover transition-colors text-sm mt-4"
@@ -268,7 +268,7 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
               <h2 className="text-2xl font-bold text-white mb-2">Explore por categoria</h2>
-              <p className="text-text-muted">Encontre conteudo do seu interesse</p>
+              <p className="text-text-muted">Encontre conteúdo do seu interesse</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {mappedCategories.slice(0, 8).map((category) => (

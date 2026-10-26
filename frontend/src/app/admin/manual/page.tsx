@@ -322,7 +322,7 @@ export default function ManualPage() {
               </p>
               <div className="bg-white rounded-lg p-4">
                 <p className="text-[#1a0dab] text-lg">Titulo do Seu Post Aparece Aqui</p>
-                <p className="text-[#006621] text-sm">https://blog.tribhus.com.br/seu-post</p>
+                <p className="text-[#006621] text-sm">https://tribhus.com/blog/seu-post</p>
                 <p className="text-[#545454] text-sm">A descricao do post aparece aqui. Ela deve ser interessante e convidar o leitor a clicar...</p>
               </div>
             </div>

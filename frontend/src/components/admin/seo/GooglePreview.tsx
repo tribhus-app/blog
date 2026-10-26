@@ -15,7 +15,7 @@ export default function GooglePreview({ title, description, url }: GooglePreview
         {displayTitle || 'Titulo do Post'}
       </p>
       <p className="text-[#006621] text-sm mt-1 truncate">
-        {url || 'https://blog.tribhus.com.br/seu-post'}
+        {url || 'https://tribhus.com/blog/seu-post'}
       </p>
       <p className="text-[#545454] text-sm mt-1 line-clamp-2">
         {displayDescription || 'A descricao do seu post aparecera aqui. Escreva algo atrativo para aumentar os cliques.'}

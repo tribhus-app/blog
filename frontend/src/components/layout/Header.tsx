@@ -12,7 +12,7 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      window.location.href = `/busca?q=${encodeURIComponent(searchQuery)}`
+      window.location.href = `/blog/busca?q=${encodeURIComponent(searchQuery)}`
     }
   }
 
@@ -23,7 +23,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group" aria-label="Tribhus Blog - Ir para pagina inicial">
             <Image
-              src="/images/logo_horizontal.png"
+              src="/blog/images/logo_horizontal.png"
               alt="Tribhus Blog"
               width={400}
               height={120}
@@ -38,13 +38,13 @@ export default function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/" className="text-sm text-text-secondary hover:text-white transition-colors">
-              Inicio
+              Início
             </Link>
             <Link href="/categoria/bandas" className="text-sm text-text-secondary hover:text-white transition-colors">
               Bandas
             </Link>
             <Link href="/categoria/noticias" className="text-sm text-text-secondary hover:text-white transition-colors">
-              Noticias
+              Notícias
             </Link>
             <Link href="/categoria/curiosidades" className="text-sm text-text-secondary hover:text-white transition-colors">
               Curiosidades
@@ -69,7 +69,7 @@ export default function Header() {
 
             {/* Tribhus link */}
             <a
-              href="https://tribhus.com.br"
+              href="https://tribhus.com"
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm text-primary-light hover:text-white border border-primary/30 hover:border-primary/60 rounded-full transition-all"
@@ -143,7 +143,7 @@ export default function Header() {
               className="block py-3 text-white font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
-              Inicio
+              Início
             </Link>
             <Link
               href="/categoria/bandas"
@@ -157,7 +157,7 @@ export default function Header() {
               className="block py-3 text-text-secondary hover:text-white transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
-              Noticias
+              Notícias
             </Link>
             <Link
               href="/categoria/curiosidades"
@@ -175,7 +175,7 @@ export default function Header() {
             </Link>
             <div className="pt-4 mt-4 border-t border-border/30">
               <a
-                href="https://tribhus.com.br"
+                href="https://tribhus.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 py-3 text-primary-light"

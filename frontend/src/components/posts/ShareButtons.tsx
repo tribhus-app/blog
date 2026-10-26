@@ -6,7 +6,7 @@ interface ShareButtonsProps {
 }
 
 export default function ShareButtons({ title, slug }: ShareButtonsProps) {
-  const url = `https://blog.tribhus.com.br/${slug}`
+  const url = `https://tribhus.com/blog/${slug}`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(url)

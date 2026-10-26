@@ -9,7 +9,11 @@ export function middleware(request: NextRequest) {
     const token = request.cookies.get('admin_token')?.value
 
     if (!token) {
-      const loginUrl = new URL('/admin/login', request.url)
+      // clone() do nextUrl, e nao new URL('/admin/login', request.url): desde 22/10/2026
+      // o blog roda com basePath /blog, e so o nextUrl sabe recolocar o prefixo.
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/admin/login'
+      loginUrl.search = ''
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
     }
@@ -19,7 +23,10 @@ export function middleware(request: NextRequest) {
   if (pathname === '/admin/login') {
     const token = request.cookies.get('admin_token')?.value
     if (token) {
-      return NextResponse.redirect(new URL('/admin', request.url))
+      const adminUrl = request.nextUrl.clone()
+      adminUrl.pathname = '/admin'
+      adminUrl.search = ''
+      return NextResponse.redirect(adminUrl)
     }
   }
 

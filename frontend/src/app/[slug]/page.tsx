@@ -25,19 +25,17 @@ async function getPost(slug: string): Promise<Post | null> {
   }
 }
 
-async function getRelatedPosts(categoryId: string, currentPostId: string): Promise<Post[]> {
+async function getRelatedPosts(postId: string): Promise<Post[]> {
+  // Endpoint proprio (20/10/2026): tag em comum + vizinhos de data na categoria, sem o texto
+  // inteiro de cada post. Antes eram sempre os 2 mais recentes da categoria e 22% dos posts
+  // nao recebiam link de lugar nenhum (backend: getRelatedPosts em postsController.ts).
   try {
-    const res = await fetch(`${API_URL}/api/posts?categoryId=${categoryId}&limit=3`, {
-      next: { revalidate: 60 },
+    const res = await fetch(`${API_URL}/api/posts/${postId}/related?limit=3`, {
+      next: { revalidate: 3600 },
     })
     if (!res.ok) return []
     const data = await res.json()
-    // A API responde { data: [...], pagination: {...} }. Ler `data.posts` devolvia
-    // undefined e o bloco "Leia tambem" nunca renderizava — nenhum post do blog
-    // tinha link interno por causa disso.
-    const lista: Post[] = data.data || data.posts || []
-    // Filter out current post
-    return lista.filter((p: Post) => p.id !== currentPostId).slice(0, 2)
+    return data.data || []
   } catch (error) {
     console.error('Error fetching related posts:', error)
     return []
@@ -62,7 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: post.metaTitle || post.title,
       description: post.metaDescription || post.excerpt,
-      url: `https://blog.tribhus.com.br/${post.slug}`,
+      url: `https://tribhus.com/blog/${post.slug}`,
       type: 'article',
       publishedTime: post.publishedAt,
       modifiedTime: post.updatedAt,
@@ -86,7 +84,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: post.coverImage ? [post.coverImage] : undefined,
     },
     alternates: {
-      canonical: `https://blog.tribhus.com.br/${post.slug}`,
+      canonical: `https://tribhus.com/blog/${post.slug}`,
     },
   }
 }
@@ -98,7 +96,7 @@ export default async function PostPage({ params }: PageProps) {
     notFound()
   }
 
-  const relatedPosts = await getRelatedPosts(post.category?.id || '', post.id)
+  const relatedPosts = await getRelatedPosts(post.id)
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -149,14 +147,14 @@ export default async function PostPage({ params }: PageProps) {
               name: 'Tribhus',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://blog.tribhus.com.br/images/logo.png',
+                url: 'https://tribhus.com/blog/images/logo.png',
               },
             },
             datePublished: post.publishedAt,
             dateModified: post.updatedAt,
             mainEntityOfPage: {
               '@type': 'WebPage',
-              '@id': `https://blog.tribhus.com.br/${post.slug}`,
+              '@id': `https://tribhus.com/blog/${post.slug}`,
             },
           }),
         }}
@@ -174,19 +172,19 @@ export default async function PostPage({ params }: PageProps) {
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Home',
-                item: 'https://blog.tribhus.com.br',
+                item: 'https://tribhus.com/blog',
               },
               {
                 '@type': 'ListItem',
                 position: 2,
                 name: category.name,
-                item: `https://blog.tribhus.com.br/categoria/${category.slug}`,
+                item: `https://tribhus.com/blog/categoria/${category.slug}`,
               },
               {
                 '@type': 'ListItem',
                 position: 3,
                 name: post.title,
-                item: `https://blog.tribhus.com.br/${post.slug}`,
+                item: `https://tribhus.com/blog/${post.slug}`,
               },
             ],
           }),
@@ -241,10 +239,10 @@ export default async function PostPage({ params }: PageProps) {
           <div className={`max-w-5xl mx-auto px-4 ${post.coverImage ? '-mt-32 relative z-10' : 'pt-12'}`}>
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-text-muted mb-4">
-              <a href="/" className="hover:text-white transition-colors">Inicio</a>
+              <a href="/blog" className="hover:text-white transition-colors">Início</a>
               <span>/</span>
               <a
-                href={`/categoria/${category.slug}`}
+                href={`/blog/categoria/${category.slug}`}
                 className="hover:text-white transition-colors"
                 style={{ color: category.color }}
               >
@@ -314,7 +312,7 @@ export default async function PostPage({ params }: PageProps) {
                 {tags.map((tag: any) => (
                   <a
                     key={tag.id}
-                    href={`/tag/${tag.slug}`}
+                    href={`/blog/tag/${tag.slug}`}
                     className="px-3 py-1 bg-dark-card border border-border rounded-full text-sm text-text-secondary hover:text-white hover:border-primary transition-all"
                   >
                     {tag.name}

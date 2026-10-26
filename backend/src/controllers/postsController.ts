@@ -708,3 +708,70 @@ export async function recordEngagement(req: Request, res: Response) {
     res.status(204).end()
   }
 }
+
+// Artigos relacionados (20/10/2026, auditoria de SEO).
+// Antes o post pedia `/api/posts?categoryId=X&limit=3` e mostrava os 2 MAIS RECENTES da
+// categoria: os 392 posts apontavam para so 23 posts diferentes, 88 (22%) nao recebiam link de
+// nenhuma pagina do blog, e cada post baixava o texto inteiro de 3 outros. Aqui:
+//   1. o post com mais tags em comum (desempate: data mais proxima);
+//   2. os vizinhos de data na mesma categoria (o seguinte e os anteriores).
+// Os vizinhos fazem uma corrente: todo post publicado recebe link dos dois lados, entao nenhum
+// fica orfao. Devolve so os campos que o cartao usa, sem `content`.
+export async function getRelatedPosts(req: Request, res: Response) {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 3, 6)
+    const atual = await prisma.blogPost.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, categoryId: true, publishedAt: true, tags: { select: { tagId: true } } },
+    })
+    if (!atual || !atual.publishedAt) return res.json({ data: [] })
+
+    const publicado = { status: 'published' as const, publishedAt: { lte: new Date() } }
+    const campos = {
+      id: true, title: true, slug: true, excerpt: true, coverImage: true,
+      publishedAt: true, featured: true, category: true,
+    }
+    const escolhidos: string[] = []
+
+    const tagIds = atual.tags.map(t => t.tagId)
+    if (tagIds.length > 0) {
+      const porTag = await prisma.blogPostTag.groupBy({
+        by: ['postId'],
+        where: { tagId: { in: tagIds }, postId: { not: atual.id }, post: publicado },
+        _count: { tagId: true },
+        orderBy: { _count: { tagId: 'desc' } },
+        take: 1,
+      })
+      if (porTag[0]) escolhidos.push(porTag[0].postId)
+    }
+
+    if (atual.categoryId) {
+      const naCategoria = { ...publicado, categoryId: atual.categoryId, id: { notIn: [atual.id, ...escolhidos] } }
+      const [seguintes, anteriores] = await Promise.all([
+        prisma.blogPost.findMany({
+          where: { ...naCategoria, publishedAt: { gt: atual.publishedAt, lte: new Date() } },
+          orderBy: { publishedAt: 'asc' }, take: limit, select: { id: true },
+        }),
+        prisma.blogPost.findMany({
+          where: { ...naCategoria, publishedAt: { lt: atual.publishedAt } },
+          orderBy: { publishedAt: 'desc' }, take: limit, select: { id: true },
+        }),
+      ])
+      // alterna seguinte e anterior, e completa com o lado que sobrar
+      const fila: string[] = []
+      for (let i = 0; i < limit; i++) {
+        if (seguintes[i]) fila.push(seguintes[i].id)
+        if (anteriores[i]) fila.push(anteriores[i].id)
+      }
+      for (const id of fila) if (escolhidos.length < limit && !escolhidos.includes(id)) escolhidos.push(id)
+    }
+
+    const posts = await prisma.blogPost.findMany({ where: { id: { in: escolhidos } }, select: campos })
+    const ordem = new Map(escolhidos.map((id, i) => [id, i]))
+    posts.sort((a, b) => (ordem.get(a.id) ?? 0) - (ordem.get(b.id) ?? 0))
+    res.json({ data: posts })
+  } catch (error) {
+    console.error('Erro ao buscar relacionados:', error)
+    res.status(500).json({ error: 'Erro ao buscar relacionados' })
+  }
+}

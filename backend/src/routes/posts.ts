@@ -25,6 +25,7 @@ router.get('/featured', postsController.getFeaturedPosts)
 router.get('/recent', postsController.getRecentPosts)
 router.get('/popular', postsController.getPopularPosts)
 router.get('/slug/:slug', postsController.getPostBySlug)
+router.get('/:id/related', postsController.getRelatedPosts)
 router.get('/category/:categorySlug', postsController.getPostsByCategory)
 
 // Rotas protegidas (admin)

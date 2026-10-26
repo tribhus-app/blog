@@ -58,7 +58,7 @@ async function getIndexableTags(): Promise<{ slug: string }[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://blog.tribhus.com.br'
+  const baseUrl = 'https://tribhus.com/blog'
 
   const [posts, categories, tags] = await Promise.all([
     getAllPosts(),

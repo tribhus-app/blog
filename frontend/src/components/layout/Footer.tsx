@@ -13,7 +13,7 @@ export default function Footer() {
           <div className="max-w-sm">
             <Link href="/" className="flex items-center gap-1 mb-4" aria-label="Tribhus Blog - Ir para pagina inicial">
               <Image
-                src="/images/logo_horizontal.png"
+                src="/blog/images/logo_horizontal.png"
                 alt="Tribhus Blog"
                 width={240}
                 height={72}
@@ -23,7 +23,7 @@ export default function Footer() {
               <span className="text-xl font-light text-text-muted translate-y-2" aria-hidden="true">Blog</span>
             </Link>
             <p className="text-text-muted text-sm leading-relaxed">
-              O melhor conteudo sobre rock underground e independente do Brasil.
+              O melhor conteúdo sobre rock underground e independente do Brasil.
             </p>
           </div>
 
@@ -33,10 +33,10 @@ export default function Footer() {
               <h4 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-4">Categorias</h4>
               <nav className="flex flex-col gap-2">
                 <Link href="/categoria/noticias" className="text-sm text-text-secondary hover:text-white transition-colors">
-                  Noticias
+                  Notícias
                 </Link>
                 <Link href="/categoria/lancamentos" className="text-sm text-text-secondary hover:text-white transition-colors">
-                  Lancamentos
+                  Lançamentos
                 </Link>
                 <Link href="/categoria/internacional" className="text-sm text-text-secondary hover:text-white transition-colors">
                   Internacional
@@ -50,15 +50,16 @@ export default function Footer() {
             <div>
               <h4 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-4">Tribhus</h4>
               <nav className="flex flex-col gap-2">
-                <a href="https://tribhus.com.br" target="_blank" rel="noopener noreferrer" className="text-sm text-text-secondary hover:text-white transition-colors">
+                <a href="https://tribhus.com" target="_blank" rel="noopener noreferrer" className="text-sm text-text-secondary hover:text-white transition-colors">
                   Plataforma
                 </a>
-                <a href="https://tribhus.com.br/bandas" target="_blank" rel="noopener noreferrer" className="text-sm text-text-secondary hover:text-white transition-colors">
+                <a href="https://tribhus.com/bandas" target="_blank" rel="noopener noreferrer" className="text-sm text-text-secondary hover:text-white transition-colors">
                   Bandas
                 </a>
-                <Link href="/sobre" className="text-sm text-text-secondary hover:text-white transition-colors">
+                {/* O blog não tem /sobre, /privacidade nem /termos: davam 404 em todas as páginas (auditoria 20/10/2026). */}
+                <a href="https://tribhus.com/sobre" className="text-sm text-text-secondary hover:text-white transition-colors">
                   Sobre
-                </Link>
+                </a>
               </nav>
             </div>
 
@@ -108,12 +109,12 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-border/20 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-text-muted">
           <p>{currentYear} Tribhus. Todos os direitos reservados.</p>
           <div className="flex gap-6">
-            <Link href="/privacidade" className="hover:text-white transition-colors">
+            <a href="https://tribhus.com/politica-de-privacidade" className="hover:text-white transition-colors">
               Privacidade
-            </Link>
-            <Link href="/termos" className="hover:text-white transition-colors">
+            </a>
+            <a href="https://tribhus.com/termos/usuario" className="hover:text-white transition-colors">
               Termos
-            </Link>
+            </a>
           </div>
         </div>
       </div>

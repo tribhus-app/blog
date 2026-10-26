@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Desde 22/10/2026 o blog mora em tribhus.com/blog (antes blog.tribhus.com.br, que
+  // agora responde 301 para ca). O Next poe o prefixo sozinho em <Link>, router e
+  // redirects(); arquivo de public/, <Image src> e URL de metadata levam /blog a mao.
+  // Ver /opt/TribhusDocumentos/seo/SEO-INTERNACIONAL.md secao 10.
+  basePath: '/blog',
   images: {
     // Otimização de imagens habilitada (WebP/AVIF automático)
     formats: ['image/avif', 'image/webp'],
@@ -29,6 +34,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'blog.tribhus.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'tribhus.com',
       },
     ],
   },

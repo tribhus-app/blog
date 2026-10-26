@@ -17,7 +17,7 @@ export default function LinkParaGenero({ slug }: { slug: string }) {
         A Tribhus reúne bandas de {genero.nome} com perfil, músicas e próximos shows.
       </p>
       <a
-        href={`https://tribhus.com.br${genero.path ?? `/genero/${genero.slug}`}`}
+        href={`https://tribhus.com${genero.path ?? `/genero/${genero.slug}`}`}
         className="inline-flex items-center gap-2 text-primary-light font-medium hover:gap-3 transition-all"
       >
         Ver as bandas de {genero.nome}

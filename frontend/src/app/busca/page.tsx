@@ -4,7 +4,7 @@ import { Post, Category } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Busca | Tribhus Blog',
-  description: 'Busque por artigos, noticias e conteudos sobre rock underground e independente.',
+  description: 'Busque por artigos, notícias e conteúdos sobre rock underground e independente.',
   robots: {
     index: false,
     follow: true,
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 // Mock data
 const mockCategories: Category[] = [
-  { id: '1', name: 'Noticias', slug: 'noticias', description: '', color: '#e74c3c' },
-  { id: '2', name: 'Lancamentos', slug: 'lancamentos', description: '', color: '#2196F3' },
+  { id: '1', name: 'Notícias', slug: 'noticias', description: '', color: '#e74c3c' },
+  { id: '2', name: 'Lançamentos', slug: 'lancamentos', description: '', color: '#2196F3' },
 ]
 
 const mockAuthor = {
@@ -34,7 +34,7 @@ const mockResults: Post[] = [
     slug: 'resultado-exemplo-1',
     excerpt: 'Este e um resultado de exemplo para demonstrar a pagina de busca.',
     content: '',
-    coverImage: '/images/placeholder-1.jpg',
+    coverImage: '/blog/images/placeholder-1.jpg',
     category: mockCategories[0],
     author: mockAuthor,
     tags: [],
@@ -51,7 +51,7 @@ const mockResults: Post[] = [
     slug: 'resultado-exemplo-2',
     excerpt: 'Mais um resultado de exemplo para a busca.',
     content: '',
-    coverImage: '/images/placeholder-2.jpg',
+    coverImage: '/blog/images/placeholder-2.jpg',
     category: mockCategories[1],
     author: mockAuthor,
     tags: [],
@@ -147,7 +147,7 @@ export default function SearchPage({ searchParams }: PageProps) {
                   Tente buscar por outros termos ou navegue pelas categorias.
                 </p>
                 <a
-                  href="/"
+                  href="/blog"
                   className="inline-block text-primary-light hover:text-primary-hover transition-colors"
                 >
                   Voltar para o inicio

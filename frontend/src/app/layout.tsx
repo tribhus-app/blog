@@ -14,7 +14,7 @@ const inter = Inter({ subsets: ['latin'] })
 const GA4_ID = 'G-5MXSFYGFSF'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://blog.tribhus.com.br'),
+  metadataBase: new URL('https://tribhus.com/blog'),
   // SEM `template` de proposito (removido em 21/08/2026, auditoria de SEO).
   //
   // O sufixo ' | Tribhus Blog' custava 15 caracteres em TODO post. Medido sobre os 353:
@@ -32,14 +32,14 @@ export const metadata: Metadata = {
   // dentro do objeto, e template e exatamente o que nao queremos aqui. Assim a home usa
   // este titulo e cada pagina filha define o seu, sem sufixo herdado.
   title: 'Tribhus Blog | Rock Underground e Independente',
-  description: 'O melhor conteudo sobre rock underground e independente. Noticias, lancamentos, entrevistas, reviews e muito mais do cenario musical alternativo brasileiro.',
+  description: 'O melhor conteúdo sobre rock underground e independente. Notícias, lançamentos, entrevistas, reviews e muito mais do cenário musical alternativo brasileiro.',
   keywords: [
     'rock underground',
     'rock independente',
     'bandas independentes',
     'musica alternativa',
     'rock brasileiro',
-    'lancamentos rock',
+    'lançamentos rock',
     'noticias rock',
     'tribhus',
   ],
@@ -60,10 +60,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://blog.tribhus.com.br',
+    url: 'https://tribhus.com/blog',
     siteName: 'Tribhus Blog',
     title: 'Tribhus Blog | Rock Underground e Independente',
-    description: 'O melhor conteudo sobre rock underground e independente. Noticias, lancamentos, entrevistas e muito mais.',
+    description: 'O melhor conteúdo sobre rock underground e independente. Notícias, lançamentos, entrevistas e muito mais.',
     images: [
       {
         url: '/images/og-image.jpg',
@@ -76,19 +76,19 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Tribhus Blog | Rock Underground e Independente',
-    description: 'O melhor conteudo sobre rock underground e independente.',
+    description: 'O melhor conteúdo sobre rock underground e independente.',
     images: ['/images/og-image.jpg'],
     creator: '@tribhus',
   },
   alternates: {
-    canonical: 'https://blog.tribhus.com.br',
+    canonical: 'https://tribhus.com/blog',
   },
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
+    icon: '/blog/favicon.ico',
+    shortcut: '/blog/favicon-16x16.png',
+    apple: '/blog/apple-touch-icon.png',
   },
-  manifest: '/site.webmanifest',
+  manifest: '/blog/site.webmanifest',
 }
 
 export default function RootLayout({
@@ -107,8 +107,8 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: 'Tribhus',
-              url: 'https://tribhus.com.br',
-              logo: 'https://blog.tribhus.com.br/images/logo.png',
+              url: 'https://tribhus.com',
+              logo: 'https://tribhus.com/blog/images/logo.png',
               // Tem que bater com o sameAs do site (tribhus_next/lib/seo/jsonld.ts).
               // Handles diferentes nos dois fazem o buscador nao saber qual perfil e da
               // empresa. Mesma lista, mesma ordem, com www para casar exatamente.
@@ -143,12 +143,12 @@ export default function RootLayout({
               '@context': 'https://schema.org',
               '@type': 'WebSite',
               name: 'Tribhus Blog',
-              url: 'https://blog.tribhus.com.br',
+              url: 'https://tribhus.com/blog',
               potentialAction: {
                 '@type': 'SearchAction',
                 target: {
                   '@type': 'EntryPoint',
-                  urlTemplate: 'https://blog.tribhus.com.br/busca?q={search_term_string}',
+                  urlTemplate: 'https://tribhus.com/blog/busca?q={search_term_string}',
                 },
                 'query-input': 'required name=search_term_string',
               },

@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/admin/', '/busca'],
       },
     ],
-    sitemap: 'https://blog.tribhus.com.br/sitemap.xml',
+    sitemap: 'https://tribhus.com/blog/sitemap.xml',
   }
 }

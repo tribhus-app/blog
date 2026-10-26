@@ -11,8 +11,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://blog.tribhus.com.br
-      - NEXT_PUBLIC_SITE_URL=https://blog.tribhus.com.br
+      - NEXT_PUBLIC_API_URL=https://tribhus.com/blog
+      - NEXT_PUBLIC_SITE_URL=https://tribhus.com/blog
     networks:
       - tribhus_blog_network
 
@@ -28,10 +28,10 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - FRONTEND_URL=https://blog.tribhus.com.br
+      - FRONTEND_URL=https://tribhus.com
       - MINIO_ENDPOINT=https://127.0.0.1:9000
       - MINIO_BUCKET=blog-images
-      - MINIO_PUBLIC_URL=https://blog.tribhus.com.br/minio-images
+      - MINIO_PUBLIC_URL=https://tribhus.com/blog/minio-images
     volumes:
       - ./uploads:/app/uploads
 
