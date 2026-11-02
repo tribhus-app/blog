@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '../utils/prisma'
+import { authMiddleware, adminMiddleware } from '../middlewares/auth'
+import slugify from 'slugify'
 
 const router = Router()
 
@@ -21,6 +23,35 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Erro ao listar tags:', error)
     res.status(500).json({ error: 'Erro ao listar tags' })
+  }
+})
+
+// Criar tag (admin). Se ja existe uma com o mesmo slug, devolve ela
+router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const name = typeof req.body?.name === 'string' ? req.body.name.trim() : ''
+    if (!name) {
+      return res.status(400).json({ error: 'Nome da tag e obrigatorio' })
+    }
+    if (name.length > 50) {
+      return res.status(400).json({ error: 'Nome da tag com no maximo 50 caracteres' })
+    }
+
+    const slug = slugify(name, { lower: true, strict: true })
+    if (!slug) {
+      return res.status(400).json({ error: 'Nome da tag invalido' })
+    }
+
+    const existing = await prisma.blogTag.findUnique({ where: { slug } })
+    if (existing) {
+      return res.json({ data: existing })
+    }
+
+    const tag = await prisma.blogTag.create({ data: { name, slug } })
+    res.status(201).json({ data: tag })
+  } catch (error) {
+    console.error('Erro ao criar tag:', error)
+    res.status(500).json({ error: 'Erro ao criar tag' })
   }
 })
 

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { prisma } from '../utils/prisma'
-import { authMiddleware, adminMiddleware } from '../middlewares/auth'
+import { authMiddleware, adminMiddleware, pedidoDeAdmin } from '../middlewares/auth'
 import slugify from 'slugify'
 import bcrypt from 'bcryptjs'
 
@@ -9,6 +9,7 @@ const router = Router()
 // Listar autores
 router.get('/', async (req, res) => {
   try {
+    const admin = await pedidoDeAdmin(req)
     const authors = await prisma.blogAuthor.findMany({
       select: {
         id: true,
@@ -16,9 +17,9 @@ router.get('/', async (req, res) => {
         slug: true,
         bio: true,
         avatar: true,
-        email: true,
+        email: admin,
         isAi: true,
-        isAdmin: true,
+        isAdmin: admin,
         createdAt: true,
         _count: { select: { posts: true } },
       },
@@ -128,11 +129,16 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params
-    const { name, slug: providedSlug, email, bio, avatar, isAi, isAdmin } = req.body
+    const { name, slug: providedSlug, email, password, bio, avatar, isAi, isAdmin } = req.body
 
     const existing = await prisma.blogAuthor.findUnique({ where: { id } })
     if (!existing) {
       return res.status(404).json({ error: 'Autor nao encontrado' })
+    }
+
+    // Senha vazia ou ausente mantem a atual (o campo do painel diz isso)
+    if (password !== undefined && password !== null && password !== '' && (typeof password !== 'string' || password.length < 6)) {
+      return res.status(400).json({ error: 'A senha precisa de pelo menos 6 caracteres' })
     }
 
     const slug = providedSlug || existing.slug
@@ -162,6 +168,7 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
         avatar,
         isAi,
         isAdmin,
+        ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
       },
       select: {
         id: true,

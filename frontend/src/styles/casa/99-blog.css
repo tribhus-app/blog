@@ -1,0 +1,27 @@
+/* =========================================================================
+   A LIGACAO DAS FONTES DA CASA NO BLOG (30/10/2026)
+
+   O 01-tokens pede 'Archivo' e 'Martian Mono' pelo nome. O blog serve as duas
+   pelo Next (app/layout.tsx), que da a cada uma um nome proprio e o publica em
+   `--font-archivo` e `--font-martian`, na classe do <html>. Aqui as tres
+   familias da casa passam a apontar para elas, como o 99-tribhus.css faz no
+   site. No blog a classe esta no <html>, entao vale no :root.
+   ========================================================================= */
+:root{
+  --face-cartaz:var(--font-archivo),'Arial Narrow','Helvetica Neue',sans-serif;
+  --face-texto:var(--font-archivo),system-ui,-apple-system,'Segoe UI',sans-serif;
+  --face-painel:var(--font-martian),ui-monospace,'SF Mono','Consolas',monospace;
+}
+
+/* O post-guia de genero leva ao catalogo do site (lib/generoDoSite.ts). No ar
+   era uma caixa do Tailwind; aqui usa a caixa "Descubra na Tribhus" do pacote
+   (.bl-descubra, no 35-blog.css), que e o mesmo convite. */
+.bl-guia{margin-block-end:var(--e-6,2rem);}
+
+/* O texto so para leitor de tela, a regra do 03-banda.css do site (o AGENTS do
+   pacote manda trazer so ela). Sem ela, o nome da serie aparecia duas vezes no
+   destaque da capa. */
+.so-leitor{
+  position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+}

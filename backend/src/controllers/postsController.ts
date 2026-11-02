@@ -5,6 +5,7 @@ import { z } from 'zod'
 import DOMPurify from 'isomorphic-dompurify'
 import { parseUserAgent, classifySource, extractIp } from '../utils/analytics'
 import { getLocation } from '../utils/geoLocation'
+import { pedidoDeAdmin } from '../middlewares/auth'
 
 // CRIT-010: sanitiza HTML do post antes de gravar. Whitelist compativel com Tiptap + YouTube.
 const SANITIZE_CONFIG = {
@@ -120,7 +121,9 @@ export async function listPosts(req: Request, res: Response) {
     const status = req.query.status as string
     const categoryId = req.query.categoryId as string
 
-    const where: any = status === 'all'
+    // `status=all` traz rascunho e agendado: so para o administrador logado.
+    // Ate 31/10/2026 qualquer pessoa lia os rascunhos por aqui.
+    const where: any = status === 'all' && (await pedidoDeAdmin(req))
       ? {}
       : { status: 'published' as const, publishedAt: { lte: new Date() } }
 

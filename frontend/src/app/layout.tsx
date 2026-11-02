@@ -1,10 +1,20 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
-import { Inter } from 'next/font/google'
+import { Archivo, Martian_Mono } from 'next/font/google'
 import './globals.css'
+// A casa da Tribhus (pacote do redesenho de 30/10/2026). Os CSS da casa sao os do
+// SITE (/opt/tribhus_next/components/tribhus/css), nao os do zip; depois deles o do
+// blog e o do painel, e por ultimo a ligacao das fontes.
+import '@/styles/casa/01-tokens.css'
+import '@/styles/casa/02-casca.css'
+import '@/styles/casa/35-blog.css'
+import '@/styles/casa/36-blog-admin.css'
+import '@/styles/casa/99-blog.css'
 import LayoutWrapper from '@/components/layout/LayoutWrapper'
 
-const inter = Inter({ subsets: ['latin'] })
+// As duas familias da casa, as mesmas do site (app/[locale]/layout.tsx de la).
+const archivo = Archivo({ subsets: ['latin'], display: 'swap', axes: ['wdth'], variable: '--font-archivo' })
+const martianMono = Martian_Mono({ subsets: ['latin'], display: 'swap', axes: ['wdth'], variable: '--font-martian' })
 
 // GA4 — MESMA propriedade do tribhus.com.br (224591904), de propósito: é o que deixa
 // visível a jornada blog -> site (post lido -> cadastro). Duas propriedades separadas
@@ -97,7 +107,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${archivo.variable} ${martianMono.variable}`}>
       <head>
         {/* JSON-LD Schema */}
         <script
@@ -156,7 +166,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body>
         <LayoutWrapper>{children}</LayoutWrapper>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}

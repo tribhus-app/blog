@@ -1,45 +1,29 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
-import PostCard from '@/components/posts/PostCard'
-import ShareButtons from '@/components/posts/ShareButtons'
-import PostContent from '@/components/posts/PostContent'
-import LinkParaGenero from '@/components/posts/LinkParaGenero'
 import ViewTracker from '@/components/posts/ViewTracker'
+import { PaginaDoArtigo } from '@/components/blog/PaginaDoArtigo'
+import { prepararCorpo } from '@/components/blog/corpo'
+import { artigo as artigoDoPost, bandasCitadas, postDaApi, relacionados } from '@/lib/blog'
+import { generoDoPost } from '@/lib/generoDoSite'
 import { Post } from '@/types'
-import { imagePresets } from '@/lib/imagePresets'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-
+// Desenho do pacote do redesenho (30/10/2026). Os metadados e o JSON-LD continuam os
+// do ar, palavra por palavra; so a tela mudou. NENHUM loading.tsx no blog: com ele o
+// Next comeca a mandar a pagina antes do notFound() e o 404 sai como 200.
 async function getPost(slug: string): Promise<Post | null> {
-  try {
-    const res = await fetch(`${API_URL}/api/posts/slug/${slug}`, {
-      next: { revalidate: 60 },
-    })
-    if (!res.ok) return null
-    const json = await res.json()
-    return json.data || json
-  } catch (error) {
-    console.error('Error fetching post:', error)
-    return null
-  }
+  return (await postDaApi(slug)) as unknown as Post | null
 }
 
-async function getRelatedPosts(postId: string): Promise<Post[]> {
-  // Endpoint proprio (20/10/2026): tag em comum + vizinhos de data na categoria, sem o texto
-  // inteiro de cada post. Antes eram sempre os 2 mais recentes da categoria e 22% dos posts
-  // nao recebiam link de lugar nenhum (backend: getRelatedPosts em postsController.ts).
-  try {
-    const res = await fetch(`${API_URL}/api/posts/${postId}/related?limit=3`, {
-      next: { revalidate: 3600 },
-    })
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.data || []
-  } catch (error) {
-    console.error('Error fetching related posts:', error)
-    return []
-  }
+/* O post-guia de genero (lib/generoDoSite.ts) leva ao catalogo do site. No ar era
+   uma caixa propria em cima do texto; aqui e a caixa "Descubra na Tribhus" do
+   pacote, que e o mesmo convite, no mesmo lugar. */
+function guiaDoGenero(slug: string): string | undefined {
+  const genero = generoDoPost(slug)
+  if (!genero) return undefined
+  const href = `https://tribhus.com${genero.path ?? `/genero/${genero.slug}`}`
+  return `<aside class="bl-descubra bl-guia"><p class="bl-descubra-rot">Quer ouvir ${genero.nome} agora?</p>`
+    + `<p>A Tribhus reúne bandas de ${genero.nome} com perfil, músicas e próximos shows.</p>`
+    + `<p><a data-convite href="${href}">Ver as bandas de ${genero.nome}</a></p></aside>`
 }
 
 interface PageProps {
@@ -49,9 +33,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const post = await getPost(params.slug)
 
-  if (!post) {
-    return { title: 'Artigo nao encontrado' }
-  }
+  // o 404 sai ja dos metadados, para o status voltar 404 de verdade
+  if (!post) notFound()
 
   return {
     title: post.metaTitle || post.title,
@@ -96,16 +79,12 @@ export default async function PostPage({ params }: PageProps) {
     notFound()
   }
 
-  const relatedPosts = await getRelatedPosts(post.id)
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    })
-  }
+  const [artigo, rel] = await Promise.all([
+    artigoDoPost(post as never),
+    relacionados(post.id),
+  ])
+  const bandas = await bandasCitadas(prepararCorpo(artigo.content).bandasCitadas)
+  const [proxima = null, ...outros] = rel
 
   const category = post.category || { name: 'Sem categoria', slug: 'sem-categoria', color: '#914100' }
   const author = post.author || { name: 'Tribhus', bio: '', avatar: '' }
@@ -119,7 +98,6 @@ export default async function PostPage({ params }: PageProps) {
   const autorEhPessoa =
     !(author as { isAi?: boolean }).isAi &&
     !/^(tribhus|admin tribhus|tribhus ia)$/i.test(nomeDoAutor)
-  const tags = post.tags || []
   return (
     <>
       {/* Tracker de visualizacoes */}
@@ -191,181 +169,14 @@ export default async function PostPage({ params }: PageProps) {
         }}
       />
 
-      <article className="min-h-screen">
-        {/* Hero */}
-        <header className="relative">
-          {post.coverImage && (
-            <div className="max-w-5xl mx-auto px-4">
-              <div className="relative h-[55vh] md:h-[70vh] rounded-t-lg overflow-hidden">
-                <Image
-                  src={post.coverImage}
-                  alt={post.title}
-                  fill
-                  priority={imagePresets.hero.priority}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 896px, 896px"
-                  className="object-cover object-top"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/50 to-transparent" />
-                {/* Creditos da imagem */}
-                {post.imageCredit && (
-                  <div className="absolute top-4 right-4 z-10">
-                    {post.imageCreditUrl ? (
-                      <a
-                        href={post.imageCreditUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-dark/80 backdrop-blur-sm rounded text-xs text-text-secondary hover:text-white hover:bg-dark transition-colors"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {post.imageCredit}
-                      </a>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-dark/80 backdrop-blur-sm rounded text-xs text-text-secondary">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {post.imageCredit}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          <div className={`max-w-5xl mx-auto px-4 ${post.coverImage ? '-mt-32 relative z-10' : 'pt-12'}`}>
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-sm text-text-muted mb-4">
-              <a href="/blog" className="hover:text-white transition-colors">Início</a>
-              <span>/</span>
-              <a
-                href={`/blog/categoria/${category.slug}`}
-                className="hover:text-white transition-colors"
-                style={{ color: category.color }}
-              >
-                {category.name}
-              </a>
-            </nav>
-
-            {/* Category & Date */}
-            <div className="flex items-center gap-3 mb-4">
-              <span
-                className="text-sm font-medium px-3 py-1 rounded-full"
-                style={{ backgroundColor: `${category.color}20`, color: category.color }}
-              >
-                {category.name}
-              </span>
-              <span className="text-text-muted">{formatDate(post.publishedAt)}</span>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
-              {post.title}
-            </h1>
-
-            {/* Excerpt */}
-            <p className="text-xl text-text-secondary mb-8">
-              {post.excerpt}
-            </p>
-
-            {/* Author & Stats */}
-            <div className="flex items-center flex-wrap gap-4 pb-8 border-b border-border">
-              <div className="flex items-center gap-3">
-                {author.avatar ? (
-                  <Image
-                    src={author.avatar}
-                    alt={author.name}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="text-primary text-lg font-medium">
-                      {author.name.charAt(0)}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <p className="text-white font-medium">{author.name}</p>
-                  <p className="text-text-muted text-sm">Autor</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content */}
-        <div className="max-w-5xl mx-auto px-4 py-12">
-          {/* So aparece nos posts-guia de genero. Ver lib/generoDoSite.ts. */}
-          <LinkParaGenero slug={post.slug} />
-          <PostContent content={post.content} />
-
-          {/* Tags */}
-          {tags.length > 0 && (
-            <div className="mt-12 pt-8 border-t border-border">
-              <h3 className="text-sm font-medium text-text-muted mb-3">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag: any) => (
-                  <a
-                    key={tag.id}
-                    href={`/blog/tag/${tag.slug}`}
-                    className="px-3 py-1 bg-dark-card border border-border rounded-full text-sm text-text-secondary hover:text-white hover:border-primary transition-all"
-                  >
-                    {tag.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Share */}
-          <div className="mt-8 pt-8 border-t border-border">
-            <h3 className="text-sm font-medium text-text-muted mb-3">Compartilhar</h3>
-            <ShareButtons title={post.title} slug={post.slug} />
-          </div>
-
-          {/* Author Bio */}
-          <div className="mt-12 p-6 bg-dark-card border border-border rounded-lg">
-            <div className="flex items-start gap-4">
-              {author.avatar ? (
-                <Image
-                  src={author.avatar}
-                  alt={author.name}
-                  width={64}
-                  height={64}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary text-2xl font-medium">
-                    {author.name.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <div>
-                <h3 className="text-white font-semibold mb-1">{author.name}</h3>
-                <p className="text-text-secondary text-sm">{author.bio || 'Equipe Tribhus'}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Related Posts */}
-        {relatedPosts.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-12 border-t border-border">
-            <h2 className="text-2xl font-bold text-white mb-8">Artigos Relacionados</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedPosts.map((relatedPost) => (
-                <PostCard key={relatedPost.id} post={relatedPost} />
-              ))}
-            </div>
-          </section>
-        )}
-      </article>
+      <PaginaDoArtigo
+        artigo={artigo}
+        endereco={`https://tribhus.com/blog/${post.slug}`}
+        bandas={bandas}
+        proxima={proxima}
+        relacionados={outros}
+        antesDoTexto={guiaDoGenero(post.slug)}
+      />
     </>
   )
 }

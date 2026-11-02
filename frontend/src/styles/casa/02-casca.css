@@ -1,0 +1,1322 @@
+/* =========================================================================
+   TRIBHUS / 2 de 3: CASCA COMPARTILHADA
+   Gerado por scripts/gerar-entrega.py. NAO EDITAR A MAO.
+
+   Cabecalho flutuante, botoes, rodape e alvos de toque. E o mesmo codigo da
+   landing, copiado sem alteracao para as pecas nao divergirem.
+
+   Importar DEPOIS dos tokens.
+   ========================================================================= */
+
+/* ---------- cabeçalho: mesma barra, mesmos itens ---------- */
+/* ===========================================================================
+   O HEADER FLUTUA. Em vez de uma barra colada no topo com uma linha de
+   corte por baixo, ele é uma peça solta sobre a foto: a foto continua
+   inteira e o header vira objeto, não faixa.
+   O vidro aqui é escuro e tem uma luz na aresta de cima, como painel de
+   equipamento. Não é o vidro branco a 10% de sempre.
+   =========================================================================== */
+.cabecalho{
+  position:fixed;top:clamp(.6rem,.35rem + .8vw,1rem);left:0;right:0;
+  z-index:var(--z-cabecalho);background:none;border:0;pointer-events:none;
+}
+.cabecalho-in{
+  pointer-events:auto;
+  width:min(78rem,100% - (2 * var(--grade-margem)));
+  gap:clamp(.8rem,.4rem + 1vw,1.4rem);
+  background:rgba(16,16,19,.62);
+  border:1px solid rgba(237,233,225,.13);
+  border-radius:999px;
+  padding-inline:clamp(.75rem,.5rem + .9vw,1.15rem);
+  box-shadow:
+    inset 0 1px 0 rgba(237,233,225,.10),
+    0 20px 44px -26px rgba(0,0,0,.95);
+  transition:background var(--dur-media) var(--mov-entrada),
+             border-color var(--dur-media) var(--mov-entrada),
+             box-shadow var(--dur-media) var(--mov-entrada);
+}
+@supports (backdrop-filter:blur(1px)){
+  .cabecalho-in{backdrop-filter:blur(20px) saturate(150%);}
+}
+/* ao rolar, o vidro fecha e a peça assenta sobre o conteúdo */
+.rolou .cabecalho-in{
+  background:rgba(13,13,16,.88);
+  border-color:rgba(237,233,225,.2);
+  box-shadow:
+    inset 0 1px 0 rgba(237,233,225,.12),
+    0 26px 54px -28px rgba(0,0,0,1);
+}
+/* sem vidro disponível, cai para sólido: legibilidade antes do efeito */
+@supports not (backdrop-filter:blur(1px)){
+  .cabecalho-in{background:rgba(13,13,16,.94);}
+}
+
+.cabecalho-in{
+  margin-inline:auto;height:calc(var(--h-controle) + 1.5rem);
+  /* três zonas: marca | navegação | ações. A do meio é elástica, então
+     a nav fica centrada e não sobra buraco entre ela e as ações. */
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+  column-gap:clamp(1rem,.4rem + 1.6vw,2.2rem);
+}
+/* A marca usa o logo real da casa. A wordmark da Tribhus já tem
+   tipografia própria e característica: nada de recriá-la em outra fonte. */
+.marca{display:flex;align-items:center;gap:.6rem;flex-shrink:0;padding-left:var(--e-2);}
+.marca .palheta{width:2.05rem;height:auto;flex-shrink:0;}
+.marca .wordmark{width:6.4rem;height:auto;flex-shrink:0;}
+/* No telefone os itens do header somavam 383px numa tela de 375px, e o
+   "Cadastrar" saía da tela. A wordmark sai primeiro: a palheta sozinha
+   já identifica a marca, e o botão principal continua alcançável. */
+@media(max-width:28rem){
+  .marca .wordmark{display:none;}
+  .marca{padding-left:0;}
+  .cabecalho-in{column-gap:.55rem;}
+  .bt-texto{padding-inline:var(--e-3);}
+  .bt-solido{padding-inline:var(--e-4);}
+}
+.nav{
+  display:none;justify-content:center;
+  gap:clamp(.9rem,.3rem + 1.3vw,1.9rem);
+}
+@media(min-width:75rem){.nav{display:flex;}}
+.nav a{
+  font-size:var(--t-controle);font-weight:500;letter-spacing:.006em;
+  color:var(--cor-texto-2);padding:var(--e-2) 0;position:relative;
+  transition:color var(--dur-curta) var(--mov-entrada);
+}
+.nav a::after{
+  content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;
+  background:var(--cor-fluor);
+  transition:right var(--dur-curta) var(--mov-entrada);
+}
+.nav a:hover{color:var(--cor-texto);}
+.nav a:hover::after{right:0;}
+/* O QUE ESTÁ ABERTO: o traço fica, e o nome acende */
+.nav a[aria-current="page"]{color:var(--cor-texto);font-weight:600;}
+.nav a[aria-current="page"]::after{right:0;}
+.nav a:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:4px;border-radius:2px;}
+/* A busca virou lupa. Ela abre POR CIMA da nav, em posição absoluta,
+   então não empurra nada e não causa reflow: só opacity e transform,
+   como manda a regra R5. */
+/* Todos os controles do header têm a MESMA altura e o mesmo ritmo
+   interno. Antes a lupa era um ícone de 16px sozinho numa cápsula, e
+   ficava raquítica ao lado de um botão sólido. */
+.lupa{
+  display:flex;align-items:center;gap:var(--e-3);
+  height:var(--h-controle);padding:0 var(--e-3) 0 var(--e-4);
+  border-radius:999px;
+  border:1px solid rgba(237,233,225,.13);background:rgba(10,10,12,.42);
+  color:var(--cor-texto-2);font-size:var(--t-controle);font-weight:500;
+  transition:color var(--dur-curta) var(--mov-entrada),
+             border-color var(--dur-curta) var(--mov-entrada),
+             background var(--dur-curta) var(--mov-entrada);
+}
+.lupa:hover{color:var(--cor-texto);border-color:rgba(237,233,225,.28);background:rgba(10,10,12,.6);}
+.lupa svg{flex-shrink:0;opacity:.75;}
+.lupa:hover svg{opacity:1;}
+@media(max-width:64rem){.lupa span{display:none;}
+  .lupa{padding-inline:var(--e-3);}}
+
+/* A BUSCA ABERTA mora na própria grade do cabeçalho: ocupa a navegação e
+   as ações (da coluna 2 até o fim) e NUNCA a marca, seja qual for o
+   tamanho do logo (antes ela abria numa distância fixa da esquerda e
+   cortava o "TRIBHUS" da pílula nova). O fundo é sólido: nada do menu
+   aparece por trás. Fechada, ela é `inert` (fora do Tab e do leitor). */
+.cabecalho-in > .marca{grid-area:1 / 1;}
+.cabecalho-in > .nav{grid-area:1 / 2;}
+.cabecalho-in > .acoes{grid-area:1 / 3;}
+.busca{
+  grid-area:1 / 2 / 2 / -1;position:relative;z-index:2;align-self:center;
+  height:var(--h-controle);min-width:0;
+  display:flex;align-items:center;gap:var(--e-3);
+  background:#0D0D10;border:1px solid rgba(255,148,56,.32);
+  padding:0 .35rem 0 var(--e-4);border-radius:999px;
+  box-shadow:0 0 0 .45rem #0D0D10;
+  opacity:0;transform:scale(.985);transform-origin:100% 50%;pointer-events:none;visibility:hidden;
+  transition:opacity var(--dur-curta) var(--mov-entrada),transform var(--dur-curta) var(--mov-papel),visibility 0s linear var(--dur-curta);
+}
+.busca.aberta{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition-delay:0s;}
+/* o X do próprio navegador sai: o X da busca é o da casa */
+.busca input::-webkit-search-cancel-button,.busca input::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none;}
+.fechar-busca{
+  width:2rem;height:2rem;flex-shrink:0;display:grid;place-items:center;
+  border-radius:999px;color:var(--cor-texto-3);
+  transition:color var(--dur-curta) var(--mov-entrada),background var(--dur-curta) var(--mov-entrada);
+}
+.fechar-busca:hover{color:var(--cor-texto);background:rgba(237,233,225,.08);}
+.cabecalho-in{position:relative;}
+/* o foco de todo campo da casa é um contorno só, claro (23/10) */
+.busca:focus-within{border-color:rgba(237,233,225,.72);}
+/* o foco é o contorno da cápsula inteira; o campo não ganha um segundo anel */
+.busca input:focus,.busca input:focus-visible{outline:0;box-shadow:none;}
+/* a teclinha do "/" saiu da lupa (20/10): o atalho continua, sem desenho */
+/* O campo de busca é um controle, não texto de leitura: entra na face
+   utilitária, com tabular-nums e tracking, para parecer o que é. */
+.busca input{
+  background:none;border:0;color:var(--cor-texto);width:100%;min-width:0;outline:none;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;
+  font-size:.72rem;letter-spacing:.04em;
+}
+.busca input::placeholder{color:var(--cor-texto-4);letter-spacing:.08em;text-transform:uppercase;font-size:.66rem;}
+.busca kbd{
+  font-family:var(--face-painel);font-variation-settings:'wdth' 75;
+  font-size:.58rem;color:var(--cor-texto-4);border:1px solid var(--cor-risco-forte);
+  padding:.1rem .38rem;border-radius:5px;flex-shrink:0;
+}
+/* AS SUGESTÕES DA BUSCA (busca/BuscaDoCabecalho.tsx): o mesmo painel das
+   notificações, preso embaixo da cápsula da busca, da largura dela. Cada
+   grupo (bandas, músicas, eventos, pessoas, empresas) abre com o seu nome
+   miúdo; a sugestão ativa (seta ou ponteiro) ganha o tom de cima. A última
+   linha leva à página da busca. */
+.bc-painel{
+  position:absolute;left:-1px;right:-1px;top:calc(100% + .85rem);z-index:5;
+  max-height:min(32rem,calc(100dvh - 7rem));overflow-y:auto;overscroll-behavior:contain;
+  background:#141417;border:1px solid var(--cor-risco-forte);border-radius:var(--raio-painel);
+  box-shadow:var(--sombra-painel),0 30px 60px -24px rgba(0,0,0,1);
+  scrollbar-width:thin;scrollbar-color:rgba(237,233,225,.16) transparent;
+}
+.bc-painel[hidden]{display:none;}
+@media (prefers-reduced-motion:no-preference){
+  .bc-painel:not([hidden]){animation:conta-abre .2s var(--mov-entrada) both;}
+}
+.bc-painel ul{margin:0;padding:.4rem;list-style:none;}
+.bc-painel li{
+  display:grid;grid-template-columns:2.4rem minmax(0,1fr);align-items:center;gap:.75rem;
+  padding:.45rem .55rem;border-radius:var(--raio-painel);cursor:pointer;
+}
+.bc-painel li[data-grupo]{margin-top:1.55rem;position:relative;}
+.bc-painel li[data-grupo]:first-child{margin-top:1.25rem;}
+.bc-painel li[data-grupo]::before{
+  content:attr(data-grupo);position:absolute;left:.55rem;top:-1.1rem;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cor-texto-3);
+}
+.bc-painel li[aria-selected="true"]{background:rgba(237,233,225,.075);}
+.bc-img{display:grid;place-items:center;width:2.4rem;height:2.4rem;overflow:hidden;border-radius:var(--raio-painel);background:var(--cor-chassi);}
+.bc-img[data-forma="redondo"]{border-radius:var(--raio-circulo);}
+.bc-img img{width:100%;height:100%;object-fit:cover;}
+.bc-img i{font-style:normal;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:.9rem;color:var(--cor-texto-2);}
+/* o evento: a data de cartaz em miniatura */
+.bc-img[data-forma="data"]{align-content:center;gap:.05rem;border-radius:0;background:#E9DFC9;color:#221D16;transform:rotate(-2deg);
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:800;text-transform:uppercase;line-height:.85;}
+.bc-img[data-forma="data"] b{font-size:1.05rem;font-weight:inherit;}
+.bc-img[data-forma="data"] small{font-size:.5rem;}
+.bc-texto{display:grid;gap:.1rem;min-width:0;}
+.bc-texto b{font-weight:500;font-size:.92rem;color:var(--cor-texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bc-texto b mark{background:none;color:inherit;font-weight:800;}
+.bc-texto small{font-size:.78rem;color:var(--cor-texto-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bc-painel li.bc-tudo{grid-template-columns:minmax(0,1fr) auto;margin-top:.4rem;padding:.75rem .55rem;border-top:1px solid var(--cor-risco);border-radius:0 0 var(--raio-painel) var(--raio-painel);font-weight:600;font-size:.9rem;color:var(--cor-texto-2);}
+.bc-painel li.bc-tudo[aria-selected="true"]{color:var(--cor-texto);}
+.bc-painel li.bc-tudo svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.acoes{
+  display:flex;align-items:center;gap:var(--e-2);flex-shrink:0;
+  padding-left:clamp(.6rem,.3rem + .8vw,1.1rem);
+  position:relative;
+}
+/* fio que separa navegar de agir. Sutil, mas dá a leitura das zonas. */
+.acoes::before{
+  content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:1px;height:1.5rem;background:rgba(237,233,225,.14);
+}
+@media(max-width:75rem){.acoes::before{display:none;}}
+.bt-texto{
+  font-size:var(--t-controle);font-weight:500;color:var(--cor-texto-2);border-radius:999px;
+  padding:0 var(--e-4);height:var(--h-controle);display:flex;align-items:center;
+  transition:color var(--dur-curta) var(--mov-entrada);
+}
+.bt-texto:hover{color:var(--cor-texto);}
+.bt-solido{
+  font-size:var(--t-controle);font-weight:600;letter-spacing:.004em;
+  background:var(--cor-papel);color:var(--cor-papel-tinta);
+  padding:0 var(--e-5);height:var(--h-controle);display:flex;align-items:center;
+  border-radius:999px;
+  transition:background var(--dur-curta) var(--mov-entrada),transform var(--dur-toque) var(--mov-papel);
+}
+.bt-solido:hover{background:var(--cor-fluor);color:var(--cor-fluor-tinta);}
+.bt-solido:active{transform:translateY(1px);}
+
+/* ---------- QUEM ENTROU: mensagens, notificações e a conta ---------- */
+.cab-ico{
+  position:relative;display:grid;place-items:center;width:var(--h-controle);height:var(--h-controle);flex-shrink:0;
+  border-radius:999px;border:1px solid rgba(237,233,225,.13);background:rgba(10,10,12,.42);color:var(--cor-texto-2);
+  transition:color var(--dur-curta) var(--mov-entrada),border-color var(--dur-curta) var(--mov-entrada),background var(--dur-curta) var(--mov-entrada);
+}
+.cab-ico svg{width:1.15rem;height:1.15rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;}
+.cab-ico:hover,.cab-ico[aria-current="page"]{color:var(--cor-texto);border-color:rgba(237,233,225,.28);background:rgba(10,10,12,.6);}
+.cab-ico:focus-visible,.conta-bt:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+/* o ponto de novidade: só o ponto, sem número */
+.cab-ponto{position:absolute;top:.5rem;right:.55rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--cor-fluor);
+  box-shadow:0 0 0 2px rgba(16,16,19,.95);}
+.conta{position:relative;flex-shrink:0;}
+.conta-bt{
+  display:flex;align-items:center;gap:.55rem;height:var(--h-controle);padding:0 .7rem 0 .3rem;
+  border-radius:999px;border:1px solid rgba(237,233,225,.13);background:rgba(10,10,12,.42);
+  color:var(--cor-texto);font-size:var(--t-controle);font-weight:600;
+  transition:border-color var(--dur-curta) var(--mov-entrada),background var(--dur-curta) var(--mov-entrada);
+}
+.conta-bt:hover,.conta-bt[aria-expanded="true"]{border-color:rgba(237,233,225,.28);background:rgba(10,10,12,.6);}
+.conta-bt img,.conta-ini{width:calc(var(--h-controle) - .6rem);height:calc(var(--h-controle) - .6rem);border-radius:50%;object-fit:cover;flex-shrink:0;}
+/* A FOTO DE QUEM ENTROU: redonda, com um anel fino separado dela por um
+   vão escuro (como o selo de um disco visto de cima). O anel acende em
+   laranja com o menu aberto. Sem foto, a inicial no mesmo círculo. */
+.conta-bt img,.conta-bt .conta-ini{
+  width:calc(var(--h-controle) - .95rem);height:calc(var(--h-controle) - .95rem);margin-left:.18rem;
+  box-shadow:0 0 0 2px #101013,0 0 0 3.5px rgba(237,233,225,.26);
+  transition:box-shadow var(--dur-curta) var(--mov-entrada);
+}
+.conta-bt:hover img,.conta-bt:hover .conta-ini{box-shadow:0 0 0 2px #101013,0 0 0 3.5px rgba(237,233,225,.5);}
+.conta-bt[aria-expanded="true"] img,.conta-bt[aria-expanded="true"] .conta-ini{box-shadow:0 0 0 2px #101013,0 0 0 3.5px var(--cor-fluor);}
+.conta-ini{display:grid;place-items:center;background:var(--cor-fluor);color:var(--cor-fluor-tinta);font-family:var(--face-cartaz);font-weight:900;font-size:.95rem;}
+.conta-seta{width:.95rem;height:.95rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--cor-texto-3);
+  transition:transform var(--dur-curta) var(--mov-entrada);}
+.conta-bt[aria-expanded="true"] .conta-seta{transform:rotate(180deg);}
+@media(max-width:64rem){.conta-arroba,.conta-seta{display:none;}.conta-bt{padding:0 .3rem;}}
+.conta-menu{
+  position:absolute;right:0;top:calc(100% + .7rem);width:15rem;padding:.5rem;
+  background:#141417;border:1px solid var(--cor-risco-forte);border-radius:var(--raio-painel);
+  box-shadow:var(--sombra-painel),0 30px 60px -24px rgba(0,0,0,1);
+}
+.conta-menu[hidden]{display:none;}
+@media (prefers-reduced-motion:no-preference){
+  .conta-menu:not([hidden]){animation:conta-abre .2s var(--mov-entrada) both;}
+}
+@keyframes conta-abre{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+.conta-quem{display:flex;align-items:center;gap:.8rem;margin:0;padding:.6rem .7rem .8rem;border-bottom:1px solid var(--cor-risco);}
+.conta-quem > img,.conta-quem > .conta-ini{
+  flex:none;width:2.9rem;height:2.9rem;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 0 2px #141417,0 0 0 3.5px rgba(237,233,225,.22);
+}
+.conta-quem > span{min-width:0;}
+.conta-quem b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.conta-quem small{display:block;margin-top:.15rem;font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--cor-ambar);}
+.conta-menu ul{list-style:none;margin:0;padding:.35rem 0;border-bottom:1px solid var(--cor-risco);}
+.conta-menu ul a,.conta-sair{
+  display:flex;align-items:center;width:100%;min-height:2.5rem;padding:0 .7rem;border-radius:var(--raio-painel);
+  font-size:var(--t-mini);color:var(--cor-texto-2);text-align:left;
+  transition:color var(--dur-curta) var(--mov-entrada),background var(--dur-curta) var(--mov-entrada);
+}
+.conta-menu ul a:hover,.conta-sair:hover{color:var(--cor-texto);background:rgba(237,233,225,.06);}
+.conta-menu a:focus-visible,.conta-sair:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:-2px;}
+.conta-idiomas{display:flex;gap:.25rem;margin:0;padding:.45rem .4rem;border-bottom:1px solid var(--cor-risco);}
+.conta-idiomas a{flex:1;padding:.4rem 0;border-radius:var(--raio-painel);text-align:center;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-size:.62rem;letter-spacing:.08em;color:var(--cor-texto-3);}
+.conta-idiomas a:hover{color:var(--cor-texto);background:rgba(237,233,225,.06);}
+.conta-idiomas a[aria-current]{color:var(--cor-texto);background:rgba(237,233,225,.08);}
+.conta-sair{margin-top:.35rem;}
+/* as ações ficam sempre na ponta direita, com ou sem a navegação ao lado */
+.acoes{grid-column:3;justify-self:end;}
+/* O MENU DA TELA ESTREITA: abre por baixo da pílula, a lista grande */
+.menu-estreito{flex-shrink:0;}
+@media(min-width:75rem){.menu-estreito{display:none;}}
+.menu-estreito-lista{
+  position:absolute;left:0;right:0;top:calc(100% + .7rem);display:grid;padding:.5rem;
+  background:#141417;border:1px solid var(--cor-risco-forte);border-radius:var(--raio-painel);
+  box-shadow:var(--sombra-painel),0 30px 60px -24px rgba(0,0,0,1);
+}
+.menu-estreito-lista[hidden]{display:none;}
+@media (prefers-reduced-motion:no-preference){
+  .menu-estreito-lista:not([hidden]){animation:conta-abre .2s var(--mov-entrada) both;}
+}
+.menu-estreito-lista a{
+  display:flex;align-items:center;min-height:3rem;padding:0 1rem;border-radius:var(--raio-painel);
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:800;font-size:1.35rem;
+  text-transform:uppercase;color:var(--cor-texto-2);
+}
+.menu-estreito-lista a:hover{color:var(--cor-texto);background:rgba(237,233,225,.05);}
+.menu-estreito-lista a[aria-current="page"]{color:var(--cor-texto);box-shadow:inset 3px 0 0 var(--cor-fluor);}
+.menu-estreito-lista a:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:-2px;}
+.menu-estreito-entrar{display:none !important;}
+@media(max-width:28rem){
+  .acoes .bt-texto{display:none;}
+  .menu-estreito-entrar{display:flex !important;margin-top:.35rem;border-top:1px solid var(--cor-risco);border-radius:0 0 var(--raio-painel) var(--raio-painel);}
+}
+
+/* ---------- O ÍCONE DA PÁGINA ABERTA (mensagens): o mesmo traço da nav ---------- */
+.cab-ico[aria-current="page"]::after{
+  content:"";position:absolute;left:50%;bottom:-.55rem;width:1rem;height:2px;margin-left:-.5rem;border-radius:1px;background:var(--cor-fluor);
+}
+
+/* ---------- AS NOTIFICAÇÕES: o painel do sino e a página ----------
+   Sem data (a ordem já diz o que é novo). A não lida tem o ponto laranja e
+   o texto aceso; o ícone diz o tipo; o convite responde ali mesmo. */
+.nt{position:relative;flex-shrink:0;}
+.nt-painel{
+  position:absolute;right:0;top:calc(100% + .7rem);width:min(24rem,calc(100vw - 2rem));
+  display:flex;flex-direction:column;max-height:min(34rem,calc(100dvh - 7rem));
+  background:#141417;border:1px solid var(--cor-risco-forte);border-radius:var(--raio-painel);
+  box-shadow:var(--sombra-painel),0 30px 60px -24px rgba(0,0,0,1);outline:0;
+}
+.nt-painel[hidden]{display:none;}
+@media (prefers-reduced-motion:no-preference){
+  .nt-painel:not([hidden]){animation:conta-abre .2s var(--mov-entrada) both;}
+}
+/* no telefone o painel ocupa a largura da pílula, preso à direita dela */
+@media (max-width:40rem){
+  .nt,.cabecalho-in > .acoes{position:static;}
+  .nt-painel{left:0;right:0;width:auto;}
+}
+.nt-cab{display:flex;align-items:center;gap:var(--e-3);padding:.9rem 1rem .75rem;border-bottom:1px solid var(--cor-risco);}
+.nt-cab h2,.nt-pagina-cab h1{
+  margin:0;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:1.3rem;line-height:1;text-transform:uppercase;color:var(--cor-texto);
+}
+.nt-todas{
+  margin-left:auto;padding:.35rem 0;border:0;background:none;cursor:pointer;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;font-size:.6rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--cor-texto-3);transition:color var(--dur-curta) var(--mov-entrada);
+}
+.nt-todas:hover{color:var(--cor-fluor);}
+.nt-todas:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:3px;border-radius:2px;}
+
+.nt-lista{list-style:none;margin:0;padding:.35rem;overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:rgba(237,233,225,.18) transparent;}
+.nt-linha{border-radius:var(--raio-painel);}
+.nt-linha + .nt-linha{margin-top:1px;}
+.nt-item{
+  display:grid;grid-template-columns:2.4rem minmax(0,1fr) .5rem;align-items:center;gap:.8rem;
+  padding:.7rem .65rem;border-radius:var(--raio-painel);color:var(--cor-texto-2);text-decoration:none;
+  transition:background-color var(--dur-curta) var(--mov-entrada),color var(--dur-curta) var(--mov-entrada);
+}
+a.nt-item:hover{background:rgba(237,233,225,.05);color:var(--cor-texto);}
+a.nt-item:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:-2px;}
+.nt-marca{
+  display:grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:50%;overflow:hidden;
+  background:#1E1E22;color:var(--cor-texto-3);box-shadow:inset 0 0 0 1px rgba(237,233,225,.07);
+}
+.nt-marca svg{width:1.1rem;height:1.1rem;}
+.nt-marca img{width:100%;height:100%;object-fit:cover;display:block;}
+.nt-marca[data-tipo="curtida"],.nt-marca[data-tipo="convite"]{color:var(--cor-ambar);}
+.nt-texto{font-size:.9rem;line-height:1.4;overflow-wrap:anywhere;}
+.nt-ponto{width:.5rem;height:.5rem;border-radius:50%;background:var(--cor-fluor);}
+/* a não lida: o texto aceso e o fundo um tom acima */
+/* (o fundo é da linha inteira: o convite e os botões dele ficam dentro) */
+.nt-linha[data-nova]{background:rgba(255,106,0,.05);}
+.nt-linha[data-nova] .nt-item{color:var(--cor-texto);}
+.nt-linha[data-nova] a.nt-item:hover{background:rgba(255,106,0,.05);}
+.nt-linha[data-nova] .nt-texto{font-weight:600;}
+
+/* o convite: responde ali mesmo */
+.nt-convite{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;padding:0 .65rem .75rem 3.85rem;}
+.nt-aceitar,.nt-recusar{
+  min-height:2.3rem;padding:0 1rem;border-radius:999px;cursor:pointer;font:inherit;font-size:.82rem;font-weight:700;
+  transition:background-color var(--dur-curta) var(--mov-entrada),border-color var(--dur-curta) var(--mov-entrada),color var(--dur-curta) var(--mov-entrada),transform var(--dur-toque) var(--mov-entrada);
+}
+.nt-aceitar{border:1px solid var(--cor-fluor);background:var(--cor-fluor);color:#140800;}
+.nt-aceitar:hover{background:#FF8126;border-color:#FF8126;}
+.nt-recusar{border:1px solid var(--cor-risco-forte);background:none;color:var(--cor-texto-2);}
+.nt-recusar:hover{border-color:rgba(237,233,225,.45);color:var(--cor-texto);}
+.nt-aceitar:active,.nt-recusar:active{transform:scale(.97);}
+.nt-aceitar:disabled,.nt-recusar:disabled{opacity:.5;cursor:default;transform:none;}
+.nt-aceitar:focus-visible,.nt-recusar:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+.nt-convite-diz{margin:0;padding:0 .65rem .75rem 3.85rem;font-size:.82rem;color:var(--cor-texto-3);}
+.nt-convite .nt-convite-diz{padding:0;}
+.nt-convite-diz[data-ok]{color:var(--cor-ambar);font-weight:600;}
+
+/* carregando: o desenho das linhas, respirando (parado para quem pede menos movimento) */
+.nt-esqueleto{display:grid;grid-template-columns:2.4rem minmax(0,1fr);align-items:center;gap:.8rem;padding:.7rem .65rem;}
+.nt-barras{display:grid;gap:.45rem;}
+.nt-barras i{display:block;height:.6rem;border-radius:2px;background:#232327;}
+.nt-barras i:last-child{width:62%;}
+@media (prefers-reduced-motion:no-preference){
+  .nt-esqueleto{animation:nt-respira 1.2s ease-in-out infinite alternate;}
+}
+@keyframes nt-respira{from{opacity:.55;}to{opacity:1;}}
+
+.nt-aviso{display:flex;align-items:center;gap:.9rem;padding:1.2rem 1rem;color:var(--cor-texto-2);font-size:.9rem;line-height:1.45;}
+.nt-aviso p{margin:0;}
+.nt-aviso b{display:block;color:var(--cor-texto);font-weight:600;}
+.nt-tentar{margin-left:auto;flex:none;min-height:2.3rem;padding:0 1rem;border:1px solid var(--cor-risco-forte);border-radius:999px;background:none;color:var(--cor-texto);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;}
+.nt-tentar:hover{border-color:var(--cor-fluor);}
+.nt-tentar:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+
+.nt-ver{
+  display:block;padding:.85rem 1rem;border-top:1px solid var(--cor-risco);text-decoration:none;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;font-size:.64rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--cor-fluor);
+}
+.nt-ver::after{content:" →";}
+.nt-ver:hover{background:rgba(237,233,225,.04);}
+.nt-ver:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:-2px;}
+
+/* a página: a mesma lista, na largura de leitura */
+.nt-pagina-in{max-width:44rem;padding:calc(var(--e-9) + 1.5rem) 0 var(--e-9);}
+.nt-pagina-cab{display:flex;align-items:baseline;gap:var(--e-4);margin-bottom:var(--e-5);padding-bottom:var(--e-4);border-bottom:1px solid var(--cor-risco);}
+.nt-pagina-cab h1{font-size:clamp(2.4rem,1.6rem + 2.4vw,3.6rem);line-height:.9;}
+.nt-pagina .nt-lista{padding:0;overflow:visible;}
+.nt-pagina .nt-item{padding:.95rem .75rem;}
+/* o menu da conta, no telefone, fica dentro da tela */
+@media(max-width:40rem){.conta{position:static;}.conta-menu{left:0;right:0;width:auto;}}
+/* no telefone, quem entrou: a palheta, a lupa, os dois ícones e a conta */
+@media(max-width:28rem){
+  [data-logado] .cabecalho-in{column-gap:.4rem;}
+  [data-logado] .acoes{gap:.35rem;}
+}
+
+.bt-primario{
+  display:inline-flex;align-items:center;gap:var(--e-3);
+  background:var(--cor-fluor);color:var(--cor-fluor-tinta);
+  padding:var(--e-3) var(--e-6);min-height:3.4rem;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:800;font-size:1.4rem;
+  text-transform:uppercase;letter-spacing:.02em;
+  border-radius:var(--raio-controle);
+  transition:background var(--dur-curta) var(--mov-entrada),transform var(--dur-toque) var(--mov-papel);
+}
+.bt-primario:hover{background:var(--cor-ambar);}
+.bt-primario:active{transform:translateY(2px);}
+.bt-secundario{
+  display:inline-flex;align-items:center;
+  padding:var(--e-3) var(--e-6);min-height:3.4rem;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:700;font-size:1.4rem;
+  text-transform:uppercase;letter-spacing:.02em;
+  color:var(--cor-texto);border:2px solid rgba(237,233,225,.45);
+  background:rgba(10,10,12,.55);border-radius:var(--raio-controle);
+  transition:border-color var(--dur-curta) var(--mov-entrada),background var(--dur-curta) var(--mov-entrada),transform var(--dur-toque) var(--mov-papel);
+}
+@supports (backdrop-filter:blur(1px)){.bt-secundario{backdrop-filter:blur(6px);}}
+.bt-secundario:hover{border-color:var(--cor-papel);background:rgba(10,10,12,.78);}
+.bt-secundario:active{transform:translateY(2px);}
+/* ---------- rodapé ---------- */
+.rodape{border-top:1px solid var(--cor-risco);padding-block:var(--e-7) var(--e-6);}
+.rodape-grade{display:grid;gap:var(--e-6);}
+@media(min-width:52rem){.rodape-grade{grid-template-columns:1.5fr 1fr 1fr 1fr;}}
+.rodape :is(h2,h3){
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;
+  font-size:var(--t-micro);letter-spacing:var(--tr-rotulo);text-transform:uppercase;
+  color:var(--cor-texto-4);margin-bottom:var(--e-3);
+}
+.rodape li a{
+  display:block;padding:var(--e-1) 0;font-size:var(--t-mini);color:var(--cor-texto-2);
+  transition:color var(--dur-curta) var(--mov-entrada);
+}
+.rodape li a:hover{color:var(--cor-fluor);}
+.rodape-fim{
+  margin-top:var(--e-6);padding-top:var(--e-4);border-top:1px solid var(--cor-risco);
+  display:flex;justify-content:space-between;gap:var(--e-4);flex-wrap:wrap;
+}
+
+/* ===========================================================================
+   ÁREA DE TOQUE. Quatro controles têm menos de 44px de altura visual: o
+   link da marca, o fechar da busca, o play dos cards e os links do rodapé.
+   Aumentar o desenho deles estragaria o layout, então a área de toque
+   cresce por fora, invisível, sem mexer em um pixel do que se vê.
+   =========================================================================== */
+.marca,.fechar-busca,.rodape li a{position:relative;}
+.marca::after,.fechar-busca::after,.desco .tocar::after,.rodape li a::after{
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:100%;height:100%;min-width:var(--alvo-min);min-height:var(--alvo-min);
+}
+/* o play do card fica sobre a foto: a área maior não pode cobrir o card
+   inteiro, senão o clique no card inteiro vira clique no play */
+.desco .tocar::after{min-width:2.9rem;min-height:2.9rem;}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:1ms !important;animation-iteration-count:1 !important;transition-duration:1ms !important;}
+}
+
+/* ---------- O AVISO DO COMPARTILHAR ----------
+   "Link copiado": um bilhete curto no pé da tela, acima do player, que some
+   sozinho. Entra subindo (transform e opacidade) e respeita quem pede menos
+   movimento pela regra geral do fim deste arquivo. */
+.cp-aviso{
+  position:fixed;z-index:80;left:50%;bottom:calc(var(--altura-player, 4.5rem) + 1rem);
+  display:flex;align-items:center;gap:.55rem;max-width:min(30rem,calc(100vw - 2rem));
+  transform:translate(-50%,.75rem);opacity:0;pointer-events:none;
+  margin:0;padding:.7rem 1.25rem .7rem 1rem;border-radius:var(--raio-controle);
+  background:var(--cor-texto);color:var(--cor-asfalto);
+  box-shadow:0 18px 40px -16px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.25);
+  font-size:.92rem;font-weight:600;line-height:1.3;
+  transition:opacity var(--dur-curta) var(--mov-entrada),transform var(--dur-curta) var(--mov-entrada);
+}
+.cp-aviso[data-visivel]{opacity:1;transform:translate(-50%,0);}
+/* o sinal do bilhete: o certo (feito); no de erro, o alerta, e o bilhete fica âmbar (com a tinta preta da casa) */
+.cp-aviso::before{
+  content:"";flex:none;width:1.05rem;height:1.05rem;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.cp-aviso:empty::before{display:none;}
+.cp-aviso[data-erro]{background:var(--cor-ambar);color:var(--cor-fluor-tinta);}
+.cp-aviso[data-erro]::before{
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7.5v5.5M12 16.5v.01'/%3E%3C/svg%3E");
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7.5v5.5M12 16.5v.01'/%3E%3C/svg%3E");
+}
+
+/* ===========================================================================
+   O VISOR DA CASA (`casca/Visor.tsx`, `casca/VideoDoVisor.tsx`)
+
+   A porta da Tribhus para foto, take, vídeo e post, igual em todas as
+   páginas. A mídia e a ficha numa peça só, no meio; a banda como ação
+   principal no pé da ficha; o player de vídeo da casa; a fita da galeria
+   no pé da tela. No celular, tela cheia, com a ficha embaixo da mídia.
+
+   Fica acima de tudo (até do cabeçalho), e o aviso de "link copiado" fica
+   acima dele. Só `transform` e `opacity` animam.
+   =========================================================================== */
+.vs{
+  --vs-alto:calc(100dvh - 11.5rem);   /* a altura da mídia no computador */
+  --vs-ficha:21.5rem;
+  position:fixed;inset:0;z-index:var(--z-modal);
+  display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;
+  color:var(--cor-texto);
+}
+.vs-fundo{
+  position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;cursor:zoom-out;
+  background:#08080A;opacity:var(--vs-fundo,1);
+}
+.vs::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+  opacity:var(--vs-fundo,1);
+}
+html:has(.vs) .cp-aviso{z-index:calc(var(--z-modal) + 1);bottom:1.5rem;}
+
+/* o topo: a posição na galeria e o fechar */
+.vs-topo{
+  position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.25rem .25rem;pointer-events:none;
+}
+.vs-conta{
+  margin:0;font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;
+  font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cor-texto-3);
+}
+.vs-fechar,.vs-seta{
+  display:grid;place-items:center;padding:0;pointer-events:auto;cursor:pointer;
+  border:1px solid rgba(255,255,255,.14);border-radius:var(--raio-circulo);background:rgba(18,18,20,.72);color:var(--cor-texto);
+  transition:border-color var(--dur-toque) var(--mov-entrada),opacity var(--dur-toque) var(--mov-entrada),transform var(--dur-toque) var(--mov-entrada);
+}
+.vs-fechar{width:2.85rem;height:2.85rem;}
+.vs-seta{width:3.25rem;height:3.25rem;}
+.vs-fechar svg,.vs-seta svg{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.vs-fechar:hover,.vs-seta:hover:not(:disabled){border-color:var(--cor-fluor);}
+.vs-fechar:active,.vs-seta:active:not(:disabled){transform:scale(.95);}
+.vs-seta:disabled{opacity:.2;cursor:default;}
+.vs-fechar:focus-visible,.vs-seta:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+
+/* a cena: as setas dos lados e a peça no meio */
+.vs-cena{
+  position:relative;z-index:2;min-height:0;
+  display:grid;grid-template-columns:4.75rem minmax(0,1fr) 4.75rem;align-items:center;
+  padding:0 .5rem;pointer-events:none;
+}
+.vs-seta[data-lado="anterior"]{grid-column:1;justify-self:center;}
+.vs-seta[data-lado="proxima"]{grid-column:3;justify-self:center;}
+
+/* A PEÇA: a mídia e a ficha juntas, como uma coisa só */
+.vs-peca{
+  grid-column:2;justify-self:center;display:flex;align-items:stretch;min-width:0;max-width:100%;
+  pointer-events:auto;
+}
+.vs-quadro{
+  position:relative;margin:0;min-width:0;
+  display:grid;place-items:center;align-self:center;box-shadow:0 60px 120px -50px rgba(0,0,0,.95);
+}
+.vs-quadro[data-so-texto]{background:#16151A;}
+.vs-midia{
+  display:block;max-width:calc(100vw - 11rem - var(--vs-ficha));max-height:var(--vs-alto);
+  width:auto;height:auto;object-fit:contain;
+}
+.vs-yt{width:min(calc(100vw - 11rem - var(--vs-ficha)),calc(var(--vs-alto) * 16 / 9));aspect-ratio:16/9;height:auto;border:0;}
+
+/* a imagem: a miniatura na hora, a cheia por cima quando chega */
+.vs-img{display:grid;place-items:center;}
+.vs-img > img{grid-area:1/1;}
+.vs-img-mini{width:100%;height:100%;object-fit:contain;filter:blur(6px) saturate(.9);}
+.vs-img-cheia{opacity:0;transition:opacity .35s var(--mov-entrada);}
+.vs-img[data-pronta] .vs-img-cheia{opacity:1;}
+.vs-img[data-pronta] .vs-img-mini{opacity:0;transition:opacity .2s .25s;}
+
+/* o post que é só texto: as palavras da banda, sem enfeite. A letra
+   responde ao tamanho (data-tam, de tamanhoDoTexto no Visor): o recado
+   curto sai como grito de cartaz, na letra condensada da casa; o médio,
+   cheio e firme; o longo, em letra de leitura, para não cansar. Sem aspa:
+   não é citação, é a banda falando direto, e o nome dela vem logo embaixo.
+   A letra se mede pela largura do cartão (cqi), e não pela da tela: no
+   visor, na página do post e na prévia do Postar ela ocupa a mesma parte
+   do cartão, do tamanho que o cartão tiver (pacote de 27/10/2026) */
+.vs-texto{
+  position:relative;margin:0;width:min(36rem,calc(100vw - 11rem - var(--vs-ficha)));
+  padding:clamp(1.75rem,1.2rem + 1.5vw,2.75rem);background:#16151A;container-type:inline-size;
+}
+.vs-texto p{
+  margin:0;font-weight:700;font-size:clamp(1.15rem,5.6cqi,1.75rem);line-height:1.3;
+  white-space:pre-line;overflow-wrap:anywhere;text-wrap:pretty;
+}
+.vs-texto[data-tam="curto"] p{
+  font-family:var(--face-cartaz);font-variation-settings:'wdth' 62;font-weight:800;
+  font-size:clamp(1.9rem,10cqi,3.2rem);line-height:1.04;letter-spacing:-.005em;text-wrap:balance;
+}
+.vs-texto[data-tam="longo"] p{font-weight:500;font-size:clamp(1rem,3.9cqi,1.2rem);line-height:1.55;}
+
+/* A FICHA */
+.vs-ficha{
+  flex:none;width:var(--vs-ficha);display:flex;flex-direction:column;justify-content:flex-end;min-height:0;max-height:var(--vs-alto);
+  padding-left:2.25rem;
+}
+/* a ficha rola sem barra: a barra do sistema (15px no Windows, com setas)
+   cortava o cartão de links e destoava da peça. O "tem mais" é o pé do texto
+   se apagando, que fica parado enquanto o texto passa por baixo (pacote do
+   painel, 26/10/2026) */
+.vs-ficha-rola{min-height:0;overflow-y:auto;padding:0 .25rem 2rem 0;overscroll-behavior:contain;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 2.25rem),transparent);mask-image:linear-gradient(#000 calc(100% - 2.25rem),transparent);}
+.vs-ficha-rola::-webkit-scrollbar{display:none;}
+.vs-tipo{
+  display:flex;gap:.7rem;margin:0 0 .75rem;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;
+  font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cor-ambar);
+}
+.vs-tipo span + span{color:var(--cor-texto-3);}
+.vs-tipo span + span::before{content:"·";margin-right:.7rem;}
+.vs-titulo{
+  margin:0;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:clamp(1.9rem,1.4rem + 1.1vw,2.8rem);line-height:.92;text-transform:uppercase;text-wrap:balance;overflow-wrap:anywhere;
+}
+.vs-titulo[data-frase]{font-family:inherit;font-variation-settings:normal;font-weight:800;font-size:1.25rem;line-height:1.25;text-transform:none;}
+.vs-legenda{margin:.9rem 0 0;color:var(--cor-texto-2);font-size:var(--t-corpo);line-height:1.6;white-space:pre-line;}
+
+/* OS LINKS DO POST (casca/LinksDoPost.tsx): as linhas do texto que eram só
+   um endereço viram uma etiqueta de papel, uma linha por destino, com o
+   verbo e o serviço ("Ouvir no Spotify") e o que é ("Faixa", "@banda").
+   Papel é rua: canto reto. A linha inteira é o toque. Na ficha, uma linha
+   por destino (com quatro, a etiqueta de duas linhas tomava a ficha). */
+.vs-links{margin:1.1rem 0 0;padding:0;list-style:none;background:var(--cor-papel);color:var(--cor-papel-tinta);border-radius:var(--raio-rua);}
+.vs-links li + li{border-top:1px solid rgba(20,18,15,.14);}
+.vs-links a{
+  position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:.85rem;
+  min-height:2.9rem;padding:.55rem .9rem .55rem 1rem;color:inherit;text-decoration:none;
+}
+.vs-links a::before{content:"";position:absolute;inset:0;background:rgba(20,18,15,.07);opacity:0;pointer-events:none;transition:opacity var(--dur-curta) var(--mov-entrada);}
+.vs-links a:hover::before{opacity:1;}
+.vs-links a:focus-visible{outline:2px solid var(--cor-papel-tinta);outline-offset:-5px;box-shadow:none;}
+.vs-links b{font-weight:800;font-size:.95rem;line-height:1.2;white-space:nowrap;}
+.vs-links small{
+  min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-size:.7rem;letter-spacing:.04em;color:rgba(20,18,15,.66);
+}
+.vs-links svg{
+  width:1.1rem;height:1.1rem;
+  fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+  transition:transform var(--dur-curta) var(--mov-entrada);
+}
+.vs-links a:hover svg{transform:translate(2px,-2px);}
+/* o post que era só o link: o cartão no lugar do texto, e o verbo em letra de cartaz */
+.vs-links[data-grande]{margin:0;width:min(30rem,calc(100vw - 11rem - var(--vs-ficha)));}
+.vs-links[data-grande] a{grid-template-columns:minmax(0,1fr) auto;min-height:5.5rem;padding:1.3rem 1.5rem 1.35rem;column-gap:1.5rem;}
+.vs-links[data-grande] b{
+  grid-column:1;padding-top:.1em;white-space:normal;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:clamp(1.7rem,1.25rem + 1.2vw,2.4rem);line-height:.95;text-transform:uppercase;
+}
+.vs-links[data-grande] small{grid-column:1;margin-top:.55rem;text-align:left;font-size:.78rem;}
+.vs-links[data-grande] svg{grid-column:2;grid-row:1 / span 2;width:1.7rem;height:1.7rem;}
+/* o post que era só o link, em miniatura (ladrilho do Radar, fileira
+   embaixo do post): a mesma etiqueta de papel do visor, no meio do quadro,
+   acima do nome de quem postou (--bilhete-pe). Tudo se mede pelo quadro
+   (cqi): a etiqueta tem quatro quintos da largura em qualquer tamanho
+   (pacote de 27/10/2026) */
+.bilhete-palco{
+  position:absolute;inset:0;display:grid;place-items:center;box-sizing:border-box;
+  padding-bottom:var(--bilhete-pe,0);background:#18171A;container-type:inline-size;
+}
+.bilhete{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:5cqi;align-items:start;
+  width:80cqi;box-sizing:border-box;padding:7cqi 6cqi 7.5cqi 7cqi;
+  background:var(--cor-papel);color:var(--cor-papel-tinta);border-radius:var(--raio-rua);
+}
+.bilhete b{
+  grid-column:1;padding-top:.1em;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);
+  font-weight:900;font-size:clamp(1rem,10cqi,2.6rem);line-height:.95;text-transform:uppercase;overflow-wrap:anywhere;
+}
+.bilhete small{
+  grid-column:1;margin-top:3.5cqi;font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;
+  font-size:clamp(.62rem,4.2cqi,.85rem);letter-spacing:.04em;color:rgba(20,18,15,.66);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.bilhete svg{
+  grid-column:2;grid-row:1 / span 2;width:clamp(.9rem,7cqi,1.6rem);height:auto;aspect-ratio:1;
+  fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+}
+.pm-quadro .bilhete-palco{--bilhete-pe:2.3rem;}
+/* o link que ficou no meio de uma frase */
+.vs-link-solto{color:var(--cor-texto);text-decoration:underline;text-decoration-color:rgba(237,233,225,.4);text-underline-offset:.2em;overflow-wrap:anywhere;}
+.vs-link-solto:hover{text-decoration-color:var(--cor-fluor);}
+@media (prefers-reduced-motion:reduce){.vs-links a::before,.vs-links svg{transition:none;}}
+
+/* a conversa do post */
+.vs-conversa{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.07);}
+.vs-conversa :is(h2,h3){
+  margin:0 0 .9rem;font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;
+  font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cor-texto-3);
+}
+.vs-conversa ul{display:grid;gap:.9rem;margin:0 0 1rem;padding:0;list-style:none;}
+.vs-conversa li{display:flex;gap:.65rem;align-items:flex-start;}
+.vs-conversa li > img,.vs-conversa li > span{flex:none;width:1.9rem;height:1.9rem;border-radius:var(--raio-circulo);object-fit:cover;background:#26252A;}
+.vs-conversa li > span{display:grid;place-items:center;font-family:var(--face-cartaz);font-weight:900;font-size:.8rem;color:var(--cor-texto-3);}
+.vs-conversa li p{margin:.15rem 0 0;font-size:.92rem;line-height:1.45;color:var(--cor-texto-2);}
+.vs-conversa li strong,.vs-conversa li a{color:var(--cor-texto);font-weight:700;text-decoration:none;}
+.vs-conversa li a:hover{color:var(--cor-fluor);}
+.vs-conversa-vazia{margin:0 0 1rem;color:var(--cor-texto-3);font-size:.92rem;}
+.vs-conversa-espera{display:grid;gap:.6rem;margin:0 0 1rem;}
+.vs-conversa-espera i{display:block;height:.8rem;border-radius:2px;background:rgba(255,255,255,.06);}
+.vs-conversa-espera i:last-child{width:62%;}
+.vs-comentar{display:flex;gap:.5rem;}
+.vs-comentar input{
+  flex:1;min-width:0;min-height:2.6rem;padding:0 1rem;border:1px solid var(--cor-risco-forte);border-radius:var(--raio-controle);
+  background:#18181B;color:var(--cor-texto);font:inherit;font-size:.92rem;
+}
+.vs-comentar input:focus{outline:0;border-color:var(--cor-ambar);}
+.vs-comentar button,.vs-entrar{
+  min-height:2.6rem;padding:0 1rem;border:1px solid var(--cor-risco-forte);border-radius:var(--raio-controle);
+  background:none;color:var(--cor-texto);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;
+}
+.vs-comentar button:disabled{opacity:.4;cursor:default;}
+.vs-comentar button:not(:disabled):hover,.vs-entrar:hover{border-color:var(--cor-fluor);}
+
+/* A BANDA: o pé da ficha, sempre à vista */
+.vs-banda{display:grid;gap:.85rem;}
+/* o fio entre o texto e a banda só existe quando há texto em cima dele */
+.vs-ficha-rola:has(.vs-titulo,.vs-legenda,.vs-links,.vs-conversa) + .vs-banda{padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.1);}
+.vs-ficha-rola:not(:has(.vs-titulo,.vs-legenda,.vs-links,.vs-conversa)){padding-bottom:.9rem;}
+.vs-banda-quem{display:flex;align-items:center;gap:.8rem;min-width:0;}
+.vs-banda-quem > img,.vs-banda-quem > span{flex:none;width:2.9rem;height:2.9rem;border-radius:var(--raio-circulo);object-fit:cover;background:#26252A;}
+.vs-banda-quem > span{display:grid;place-items:center;font-family:var(--face-cartaz);font-weight:900;color:var(--cor-texto-3);}
+.vs-banda-quem p{margin:0;min-width:0;}
+.vs-banda-quem strong{padding-block:.2em .15em;margin-block:-.2em -.15em;
+  display:block;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:1.2rem;line-height:1;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.vs-banda-quem small{display:block;margin-top:.25rem;font-size:var(--t-mini);color:var(--cor-texto-3);}
+/* no post, quem falou abre a ficha, logo embaixo do rótulo */
+.vs-ficha-rola > .vs-banda-quem{margin-top:.15rem;}
+.vs-ficha-rola > .vs-banda-quem > img,.vs-ficha-rola > .vs-banda-quem > span{width:3.4rem;height:3.4rem;}
+.vs-ficha-rola > .vs-banda-quem strong{font-size:clamp(1.45rem,1.2rem + .6vw,1.8rem);}
+.vs-bt{
+  display:flex;align-items:center;justify-content:center;min-height:var(--alvo-min);padding:0 1.25rem;
+  border-radius:var(--raio-controle);background:var(--cor-fluor);color:#140800;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:1.05rem;
+  text-transform:uppercase;letter-spacing:.01em;text-decoration:none;
+  transition:transform var(--dur-toque) var(--mov-entrada),background-color var(--dur-toque) var(--mov-entrada);
+}
+.vs-bt:hover{background:#FF8126;}
+.vs-bt:active{transform:scale(.98);}
+.vs-bt:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+.vs-mais{display:flex;flex-wrap:wrap;gap:.25rem 1.25rem;}
+.vs-mais > *{
+  display:inline-flex;align-items:center;gap:.45rem;min-height:2.25rem;padding:0;border:0;background:none;
+  color:var(--cor-texto-2);font:inherit;font-size:.86rem;text-decoration:none;cursor:pointer;
+  transition:color var(--dur-toque) var(--mov-entrada);
+}
+.vs-mais > *:hover{color:var(--cor-texto);}
+.vs-mais svg{width:1rem;height:1rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.vs-mais > *:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:2px;border-radius:2px;}
+
+/* A FITA DA GALERIA */
+.vs-fita{position:relative;z-index:2;padding:.85rem 0 1rem;}
+.vs-fita ol{
+  display:flex;gap:6px;margin:0;padding:2px calc(50% - 2.1rem);list-style:none;
+  overflow-x:auto;scrollbar-width:none;overscroll-behavior:contain;
+}
+.vs-fita ol::-webkit-scrollbar{display:none;}
+.vs-fita li{flex:none;}
+.vs-fita button{
+  position:relative;display:block;width:4.2rem;height:2.9rem;padding:0;border:0;border-radius:2px;overflow:hidden;
+  background:#18181B;cursor:pointer;opacity:.38;
+  transition:opacity var(--dur-toque) var(--mov-entrada),transform var(--dur-toque) var(--mov-entrada);
+}
+.vs-fita button:hover{opacity:.78;}
+.vs-fita button[aria-current]{opacity:1;box-shadow:0 0 0 2px var(--cor-fluor);}
+.vs-fita button:focus-visible{outline:0;opacity:1;box-shadow:0 0 0 2px var(--cor-ambar);}
+.vs-fita img{width:100%;height:100%;object-fit:cover;display:block;}
+.vs-fita small{
+  position:absolute;right:3px;bottom:3px;padding:0 .2rem;border-radius:2px;background:rgba(0,0,0,.72);
+  font-family:var(--face-painel);font-size:.5rem;letter-spacing:.04em;color:var(--cor-texto);
+}
+/* o post só de texto na fita: o começo dele em letra de cartaz, como um
+   cartão do visor em miniatura (pacote de 27/10/2026) */
+.vs-fita-texto{
+  display:block;height:100%;padding:.4rem .45rem;overflow:hidden;background:#16151A;text-align:left;
+  font-family:var(--face-cartaz);font-variation-settings:'wdth' 62;font-weight:800;font-size:.74rem;line-height:1.02;color:var(--cor-texto);
+  overflow-wrap:anywhere;-webkit-mask-image:linear-gradient(180deg,#000 60%,transparent);mask-image:linear-gradient(180deg,#000 60%,transparent);
+}
+.vs-fita-texto[data-papel]{background:var(--cor-papel);color:var(--cor-papel-tinta);font-variation-settings:var(--largura-cartaz);font-weight:900;text-transform:uppercase;-webkit-mask-image:none;mask-image:none;}
+
+/* O ZOOM DA FOTO: dois cliques aproximam no ponto; o mouse passeia */
+.vs-img{overflow:hidden;cursor:zoom-in;touch-action:manipulation;}
+.vs-img[data-perto]{cursor:zoom-out;}
+.vs-img-cheia{transition:opacity .35s var(--mov-entrada),transform .4s cubic-bezier(.2,.8,.25,1);user-select:none;}
+.vs-img[data-perto] .vs-img-cheia{transform:scale(2.2);transition:opacity .35s var(--mov-entrada),transform .4s cubic-bezier(.2,.8,.25,1),transform-origin .12s linear;}
+
+/* A IMERSÃO: parado, sobram a mídia e a ficha */
+.vs:focus{outline:0;}
+.vs-topo,.vs-seta,.vs-fita{transition:opacity .45s var(--mov-entrada);}
+.vs[data-quieto] .vs-topo,.vs[data-quieto] .vs-seta,.vs[data-quieto] .vs-fita{opacity:0;pointer-events:none;}
+.vs[data-quieto] .vs-quadro{cursor:none;}
+.vs[data-quieto] .vs-img{cursor:none;}
+
+/* ------------------------------------------------------------ O PLAYER */
+.vv{position:relative;display:grid;place-items:center;}
+.vv[data-quieto]{cursor:none;}
+.vv-video{background:#000;}
+.vv:not([data-vertical]) .vv-video{width:min(calc(100vw - 11rem - var(--vs-ficha)),calc(var(--vs-alto) * 16 / 9));aspect-ratio:16/9;max-height:var(--vs-alto);}
+.vv[data-vertical] .vv-video{height:var(--vs-alto);width:auto;aspect-ratio:9/16;}
+/* o tocar grande, no meio */
+.vv-grande{
+  position:absolute;left:50%;top:50%;width:4.75rem;height:4.75rem;margin:-2.375rem 0 0 -2.375rem;padding:0;
+  display:grid;place-items:center;border:0;border-radius:var(--raio-circulo);background:var(--cor-fluor);color:#140800;cursor:pointer;
+  box-shadow:0 14px 40px -10px rgba(0,0,0,.8);transition:transform var(--dur-toque) var(--mov-entrada);
+}
+.vv-grande svg{width:1.9rem;height:1.9rem;margin-left:.2rem;fill:currentColor;}
+.vv-grande:hover{transform:scale(1.06);}
+.vv-grande:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+.vv-espera{
+  position:absolute;left:50%;top:50%;width:2.6rem;height:2.6rem;margin:-1.3rem 0 0 -1.3rem;border-radius:var(--raio-circulo);
+  border:2px solid rgba(255,255,255,.15);border-top-color:var(--cor-fluor);pointer-events:none;
+}
+@media (prefers-reduced-motion:no-preference){.vv-espera{animation:vv-gira .9s linear infinite;}}
+@keyframes vv-gira{to{transform:rotate(360deg);}}
+/* a barra: some quando o vídeo toca e ninguém mexe */
+.vv-barra{
+  position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:.35rem;
+  padding:2.5rem .7rem .55rem;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.78));
+  transition:opacity .35s var(--mov-entrada);
+}
+.vv[data-quieto] .vv-barra{opacity:0;}
+.vv-bt{
+  flex:none;display:grid;place-items:center;width:2.5rem;height:2.5rem;padding:0;border:0;border-radius:var(--raio-circulo);
+  background:none;color:var(--cor-texto);cursor:pointer;transition:background-color var(--dur-toque) var(--mov-entrada);
+}
+.vv-bt:hover{background:rgba(255,255,255,.1);}
+.vv-bt:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+.vv-bt svg{width:1.25rem;height:1.25rem;fill:currentColor;}
+.vv-bt .vv-traco,.vv-bt svg path.vv-traco{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.vv-tempo{flex:none;min-width:2.6rem;font-family:var(--face-painel);font-size:.66rem;letter-spacing:.06em;color:var(--cor-texto);text-align:center;}
+.vv-tempo-total{color:var(--cor-texto-3);}
+/* O SULCO: a barra de tempo da casa */
+.vv-sulco{position:relative;flex:1;min-width:0;height:1.9rem;display:flex;align-items:center;cursor:pointer;touch-action:none;}
+.vv-sulco:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:2px;border-radius:2px;}
+.vv-sulco-trilho{position:relative;width:100%;height:3px;border-radius:2px;overflow:hidden;background:rgba(255,255,255,.2);transition:transform var(--dur-toque) var(--mov-entrada);}
+.vv-sulco:hover .vv-sulco-trilho{transform:scaleY(1.7);}
+.vv-sulco-trilho i{position:absolute;inset:0;transform-origin:0 50%;}
+.vv-sulco-carregado{background:rgba(255,255,255,.22);}
+.vv-sulco-tocado{background:var(--cor-fluor);}
+.vv-agulha{position:absolute;inset:0;pointer-events:none;}
+.vv-agulha i{position:absolute;left:0;top:50%;width:100%;height:0;}
+.vv-agulha i::after{
+  content:"";position:absolute;left:0;top:0;width:.8rem;height:.8rem;margin:-.4rem 0 0 -.4rem;border-radius:var(--raio-circulo);
+  background:#FFF1E2;box-shadow:0 0 0 3px rgba(255,106,0,.35);transform:scale(0);transition:transform var(--dur-toque) var(--mov-entrada);
+}
+.vv-sulco:hover .vv-agulha i::after,.vv-sulco:focus-visible .vv-agulha i::after,.vv:not([data-tocando]) .vv-agulha i::after{transform:scale(1);}
+.vv-mira{
+  position:absolute;left:0;bottom:calc(100% + .2rem);width:3rem;margin-left:-1.5rem;padding:.2rem 0;border-radius:2px;pointer-events:none;
+  background:rgba(12,12,14,.92);font-family:var(--face-painel);font-size:.62rem;text-align:center;color:var(--cor-texto);
+}
+
+/* ------------------------------------------------------------ O MOVIMENTO */
+@media (prefers-reduced-motion:no-preference){
+  .vs-fundo,.vs::before,.vs-topo,.vs-fita{animation:vs-acende .28s var(--mov-entrada) backwards;}
+  .vs-peca{animation:vs-entra .42s cubic-bezier(.2,.8,.25,1) backwards;}
+  .vs-peca[data-direcao="proxima"]{animation-name:vs-vem-da-direita;}
+  .vs-peca[data-direcao="anterior"]{animation-name:vs-vem-da-esquerda;}
+  .vs-ficha{animation:vs-acende .4s var(--mov-entrada) .08s backwards;}
+  .vs[data-voo] .vs-peca{animation:none;}
+}
+@keyframes vs-acende{from{opacity:0;}to{opacity:1;}}
+@keyframes vs-entra{from{opacity:0;transform:scale(.97);}to{opacity:1;transform:none;}}
+@keyframes vs-vem-da-direita{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:none;}}
+@keyframes vs-vem-da-esquerda{from{opacity:0;transform:translateX(-40px);}to{opacity:1;transform:none;}}
+/* ao sair, tudo apaga enquanto a mídia volta para o lugar dela */
+.vs[data-saindo] .vs-fundo,.vs[data-saindo]::before,.vs[data-saindo] .vs-ficha,.vs[data-saindo] .vs-topo,
+.vs[data-saindo] .vs-fita,.vs[data-saindo] .vs-seta,.vs[data-saindo] .vv-barra{opacity:0;transition:opacity .22s cubic-bezier(.4,0,.8,.4);}
+.vs[data-saindo] .vs-peca{box-shadow:none;}
+
+/* ------------------------------------------------------------ O CELULAR
+   Tela cheia: a mídia no alto, a ficha no pé (rola por dentro), o topo
+   por cima da mídia. Deslizar passa, arrastar para baixo fecha; a fita sai
+   (o dedo é a galeria) e as setas também, no toque. */
+@media (max-width:52rem){
+  .vs{--vs-ficha:100%;grid-template-rows:minmax(0,1fr);}
+  .vs-topo{position:absolute;left:0;right:0;top:0;padding:.75rem .9rem 1.5rem;background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,0));}
+  .vs-cena{grid-row:1;grid-template-columns:minmax(0,1fr);padding:0;}
+  .vs-peca{grid-column:1;width:100%;height:100dvh;flex-direction:column;box-shadow:none;}
+  .vs-quadro{flex:1;min-height:0;background:none;padding-top:3.75rem;}
+  .vs-midia,.vs-img-mini{max-width:100vw;max-height:100%;}
+  .vs-img{width:100%;height:100%;min-height:0;}
+  .vs-img > img{max-height:100%;}
+  .vs-yt{width:100vw;}
+  .vs-texto{width:calc(100vw - 2rem);padding:1.5rem;}
+  .vs-links[data-grande]{width:calc(100vw - 2rem);}
+  .vs-ficha{width:100%;max-height:min(46dvh,24rem);padding:1.1rem var(--grade-margem) calc(.9rem + env(safe-area-inset-bottom));background:#0E0E10;border-top:1px solid rgba(255,255,255,.07);justify-content:flex-start;}
+  .vs-ficha-rola{padding:0 0 .9rem;}
+  .vs-titulo{font-size:1.7rem;}
+  .vs-banda{padding-top:.85rem;grid-template-columns:minmax(0,1fr) auto;align-items:center;}
+  .vs-banda[data-so-acao]{grid-template-columns:minmax(0,1fr);}
+  .vs-banda .vs-bt{min-height:2.75rem;padding:0 1rem;font-size:.95rem;}
+  .vs-mais{grid-column:1 / -1;}
+  .vs-seta{position:absolute;top:calc(50% - 6rem);z-index:3;width:2.75rem;height:2.75rem;}
+  .vs-seta[data-lado="anterior"]{left:.5rem;}
+  .vs-seta[data-lado="proxima"]{right:.5rem;}
+  .vs-fita{display:none;}
+  .vv{width:100%;max-height:100%;}
+  .vv:not([data-vertical]) .vv-video{width:100%;height:auto;aspect-ratio:16/9;max-height:100%;}
+  .vv[data-vertical]{height:100%;width:auto;}
+  .vv[data-vertical] .vv-video{height:100%;width:auto;max-width:100vw;aspect-ratio:9/16;}
+}
+@media (max-width:52rem) and (pointer:coarse){.vs-seta{display:none;}}
+
+/* ---------- A PÁGINA DA COISA (`casca/PaginaDaMidia.tsx`) ----------
+   /foto, /takes, /video e /postagem abertos pelo link: O VISOR PARADO. A
+   sala escura do visor de ponta a ponta, com a mesma peça no meio (a mídia
+   e a ficha), e embaixo, na base da casa, MAIS DA BANDA: uma fileira das
+   outras coisas dela, que abrem no visor. As medidas da peça vêm das
+   variáveis do visor (`--vs-alto`, `--vs-ficha`). */
+.pm{--vs-ficha:21.5rem;--vs-alto:min(calc(100dvh - 13rem),50rem);}
+.pm-sala{
+  position:relative;isolation:isolate;display:grid;place-items:center;
+  min-height:min(100dvh,calc(var(--vs-alto) + 13rem));
+  padding:calc(var(--e-9) + 1.25rem) var(--grade-margem) var(--e-8);
+  background:#08080A;
+}
+/* o grão do visor, parado */
+.pm-sala::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+/* no visor a peça mora na coluna do meio (entre as setas); na sala da página
+   não há setas, e a coluna 2 virava uma coluna fantasma que a empurrava */
+.pm-sala .vs-peca{max-width:100%;grid-column:auto;}
+.pm-sala .vs-midia{max-width:calc(100vw - 2 * var(--grade-margem) - var(--vs-ficha) - 2.25rem);}
+.pm-sala .vs-yt,.pm-sala .vv:not([data-vertical]) .vv-video{
+  width:min(calc(100vw - 2 * var(--grade-margem) - var(--vs-ficha) - 2.25rem),calc(var(--vs-alto) * 16 / 9),62rem);
+}
+.pm-sala .vs-texto{width:min(36rem,calc(100vw - 2 * var(--grade-margem) - var(--vs-ficha) - 2.25rem));}
+.pm-sala .vs-links[data-grande]{width:min(30rem,calc(100vw - 2 * var(--grade-margem) - var(--vs-ficha) - 2.25rem));}
+.pm-sala .vs-titulo{font-size:clamp(2.1rem,1.5rem + 1.4vw,3.2rem);}
+.pm-sala .vs-titulo[data-frase]{font-size:1.35rem;}
+
+/* o post para quem não entrou: o texto velado, com as linhas paradas do
+   esqueleto da casa (nada corre, nada pisca) */
+.pm-velado{display:grid;gap:1rem;min-height:15rem;align-content:start;}
+.pm-velado i{display:block;height:1.35rem;border-radius:2px;background:rgba(255,255,255,.07);}
+.pm-velado i:nth-child(2){width:88%;}
+.pm-velado i:nth-child(3){width:94%;}
+.pm-velado i:last-child{width:52%;}
+.pm-fechado .vs-titulo{font-size:clamp(1.9rem,1.4rem + 1.1vw,2.6rem);}
+.pm-bt-borda{
+  display:flex;align-items:center;justify-content:center;min-height:var(--alvo-min);padding:0 1.25rem;
+  border:1px solid rgba(255,255,255,.22);border-radius:var(--raio-controle);color:var(--cor-texto);
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:1.05rem;
+  text-transform:uppercase;letter-spacing:.01em;text-decoration:none;
+  transition:border-color var(--dur-toque) var(--mov-entrada),transform var(--dur-toque) var(--mov-entrada);
+}
+.pm-bt-borda:hover{border-color:var(--cor-fluor);}
+.pm-bt-borda:active{transform:scale(.98);}
+.pm-bt-borda:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+
+/* MAIS DA BANDA: uma fileira na altura de um take, cada coisa no formato
+   dela (o take em pé, o vídeo deitado, a foto e o post no retrato) */
+.pm-mais{--pm-alto:15rem;width:var(--col-total);margin-inline:auto;padding:var(--e-8) 0 var(--e-9);}
+/* no computador o quadro cresce: com quatro ou cinco coisas a fileira enche
+   a linha em vez de parar no meio; com muitas, segue rolando com as setas */
+@media (min-width:70rem){.pm-mais{--pm-alto:20rem;}}
+.pm-mais-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem 2rem;flex-wrap:wrap;margin:0 0 var(--e-5);}
+.pm-mais-cab .pm-mais-tit{margin:0;}
+.pm-mais-tit{
+  margin:0 0 var(--e-5);font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:clamp(1.7rem,1.3rem + 1.2vw,2.4rem);line-height:.92;text-transform:uppercase;text-wrap:balance;
+}
+.pm-fila{
+  display:flex;gap:.5rem;margin:0 calc(-1 * var(--grade-margem));padding:0 var(--grade-margem) .25rem;list-style:none;
+  overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-inline:var(--grade-margem);scrollbar-width:none;overscroll-behavior-x:contain;
+}
+.pm-fila::-webkit-scrollbar{display:none;}
+.pm-fila li{flex:none;scroll-snap-align:start;}
+/* as setas da casa no meio da fileira */
+.pm-mais .setas-caixa{--seta-meio:calc(var(--pm-alto) / 2);}
+/* no toque a fileira passa com o dedo, e a seta cobriria o tocar do quadro */
+@media (pointer:coarse){.pm-mais .seta{display:none;}}
+.pm-quadro{
+  position:relative;display:block;height:var(--pm-alto);aspect-ratio:4/5;overflow:hidden;border-radius:2px;
+  background:#16151A;color:var(--cor-texto);text-decoration:none;
+}
+.pm-fila li[data-tipo="take"] .pm-quadro{aspect-ratio:9/16;}
+.pm-fila li[data-tipo="video"] .pm-quadro{aspect-ratio:16/9;}
+.pm-quadro img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.2,.8,.25,1);}
+.pm-quadro:hover img{transform:scale(1.035);}
+.pm-quadro::after{
+  content:"";position:absolute;inset:auto 0 0;height:45%;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.72));
+}
+/* a sombra é para o nome ler em cima de foto: no fundo liso do texto e da
+   etiqueta ela só escurecia as últimas linhas */
+.pm-quadro:has(.pm-quadro-texto,.bilhete-palco)::after{display:none;}
+.pm-quadro-diz{
+  position:absolute;left:.75rem;right:.75rem;bottom:.65rem;z-index:1;display:flex;gap:.6rem;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;
+  font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--cor-texto);
+}
+.pm-quadro-diz{flex-wrap:wrap;row-gap:.4rem;}
+.pm-quadro-quem{
+  flex:0 0 100%;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:1.05rem;line-height:1;letter-spacing:.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.pm-quadro-diz span + span{color:var(--cor-texto-2);}
+.pm-quadro-diz span + span::before{content:"·";margin-right:.6rem;}
+.pm-quadro-tocar{
+  position:absolute;left:50%;top:50%;z-index:1;display:grid;place-items:center;width:2.9rem;height:2.9rem;margin:-1.45rem 0 0 -1.45rem;
+  border-radius:var(--raio-circulo);background:rgba(10,10,12,.62);color:var(--cor-texto);
+  transition:transform var(--dur-toque) var(--mov-entrada),background-color var(--dur-toque) var(--mov-entrada);
+}
+.pm-quadro-tocar svg{width:1.15rem;height:1.15rem;margin-left:.15rem;fill:currentColor;}
+.pm-quadro:hover .pm-quadro-tocar{transform:scale(1.08);background:var(--cor-fluor);color:#140800;}
+/* o post que é só texto: o começo dele, com a mesma regra do visor. A
+   letra e a margem andam com a altura do quadro (a largura é 4/5 dela) */
+.pm-quadro-texto{
+  display:block;height:100%;padding:calc(var(--pm-alto) * .055) calc(var(--pm-alto) * .055) 2.5rem;overflow:hidden;
+  font-weight:700;font-size:clamp(.82rem,var(--pm-alto) * .05,1.1rem);line-height:1.35;overflow-wrap:anywhere;
+  -webkit-mask-image:linear-gradient(180deg,#000 70%,transparent);mask-image:linear-gradient(180deg,#000 70%,transparent);
+}
+.pm-quadro-texto[data-tam="curto"]{
+  font-family:var(--face-cartaz);font-variation-settings:'wdth' 62;font-weight:800;
+  font-size:clamp(1rem,var(--pm-alto) * .078,1.7rem);line-height:1.04;text-wrap:balance;
+}
+.pm-quadro:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+@media (prefers-reduced-motion:reduce){.pm-quadro img,.pm-quadro:hover img{transition:none;transform:none;}}
+
+/* NO CELULAR: a mídia de ponta a ponta no alto, a ficha embaixo dela, na
+   página (o visor por cima da página continua em tela cheia, como sempre) */
+@media (max-width:52rem){
+  .pm{--vs-ficha:100%;}
+  .pm-sala{display:block;min-height:0;padding:calc(var(--e-9) + .5rem) 0 0;}
+  .pm-sala .vs-peca{width:100%;height:auto;flex-direction:column;}
+  .pm-sala .vs-quadro{padding-top:0;}
+  .pm-sala .vs-midia,.pm-sala .vs-img > img{max-width:100vw;max-height:72dvh;}
+  .pm-sala .vs-img{height:auto;}
+  .pm-sala .vs-yt,.pm-sala .vv:not([data-vertical]) .vv-video{width:100vw;}
+  .pm-sala .vv[data-vertical]{height:auto;}
+  .pm-sala .vv[data-vertical] .vv-video{height:min(72dvh,calc(100vw * 16 / 9));}
+  .pm-sala .vs-texto{width:calc(100vw - 2 * var(--grade-margem));}
+  .pm-sala .vs-links[data-grande]{width:calc(100vw - 2 * var(--grade-margem));}
+  .pm-sala .vs-ficha{max-height:none;background:none;border-top:0;padding:1.4rem var(--grade-margem) var(--e-7);}
+  /* aqui a ficha não rola: sem o pé apagado, senão o fim do texto some à toa */
+  .pm-sala .vs-ficha-rola{overflow:visible;-webkit-mask-image:none;mask-image:none;}
+  .pm-mais{padding-top:var(--e-7);}
+  .pm-mais{--pm-alto:12.5rem;}
+}
+
+/* ---------- A DICA ----------
+   O nome do botão que é só ícone, ao passar o mouse ou chegar pelo
+   teclado (o script põe e posiciona). Letra de painel, pequena, sobre a
+   chapa escura, acima de tudo. */
+.dica{
+  position:fixed;left:0;top:0;z-index:calc(var(--z-modal) + 2);pointer-events:none;
+  padding:.38rem .6rem;border-radius:var(--raio-painel);white-space:nowrap;
+  background:#ECE7DF;color:#121214;box-shadow:0 10px 24px -10px rgba(0,0,0,.9);
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;
+  opacity:0;transition:opacity .14s var(--mov-entrada);
+}
+.dica.aberta{opacity:1;}
+
+
+/* ---------- AS MENSAGENS (/mensagens, /mensagens/[id]) ----------
+   A lista e a conversa numa caixa só: lado a lado no computador, uma de
+   cada vez no celular.
+
+   A CONVERSA É LIDA COMO A LETRA DA MÚSICA (a mesma língua da página da
+   música): cada vez que alguém fala, o rótulo de quem é, em letra de
+   painel, no lugar do "ESTROFE 1"; as falas seguidas embaixo. A da outra
+   pessoa leva o filete laranja do refrão e o texto aceso; a sua fica mais
+   calma. Nada de balão: é a transcrição de uma conversa, como entrevista
+   de fanzine. Sem data escrita (a hora aparece ao passar o mouse).
+   A LISTA tem os nomes em letra de cartaz. ESCREVER é uma folha embaixo,
+   com o ENVIAR em letra de cartaz. */
+.ms-in{padding:calc(var(--e-9) + 1.5rem) 0 var(--e-8);}
+.ms-cab{margin-bottom:var(--e-5);}
+.ms-cab h1{
+  margin:0;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:clamp(2.4rem,1.6rem + 2.4vw,3.6rem);line-height:.9;text-transform:uppercase;
+}
+.ms-cab p{margin:.5rem 0 0;color:var(--cor-texto-3);font-size:var(--t-corpo);}
+.ms-caixa{
+  display:grid;grid-template-columns:minmax(0,22rem) minmax(0,1fr);
+  height:max(28rem,calc(100dvh - 15.5rem));
+  border:1px solid var(--cor-risco-forte);border-radius:var(--raio-painel);overflow:hidden;background:#0F0F12;
+}
+/* com a música tocando, a barra do player mora embaixo: a caixa sobe */
+.tocando .ms-caixa{height:max(26rem,calc(100dvh - 15.5rem - var(--altura-player, 4.5rem)));}
+
+/* A LISTA: os nomes em letra de cartaz, a última fala embaixo */
+.ms-lado{min-width:0;background:var(--cor-chassi);border-right:1px solid var(--cor-risco-forte);overflow-y:auto;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:rgba(237,233,225,.18) transparent;}
+.ms-lista{list-style:none;margin:0;padding:0;}
+.ms-lista > li + li{border-top:1px solid var(--cor-risco);}
+.ms-linha{
+  position:relative;display:grid;grid-template-columns:2.6rem minmax(0,1fr) .5rem;align-items:center;gap:.85rem;
+  padding:.95rem 1.1rem;color:var(--cor-texto-2);text-decoration:none;
+  transition:background-color var(--dur-curta) var(--mov-entrada);
+}
+.ms-linha:hover{background:rgba(237,233,225,.035);}
+.ms-linha[aria-current="page"]{background:#0F0F12;box-shadow:inset 3px 0 0 var(--cor-fluor);}
+.ms-linha:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:-2px;}
+.ms-rosto{
+  display:grid;place-items:center;width:2.6rem;height:2.6rem;border-radius:50%;overflow:hidden;flex:none;background:#26252A;
+  box-shadow:0 0 0 2px var(--cor-chassi),0 0 0 3.5px rgba(237,233,225,.14);
+}
+.ms-rosto img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.15);}
+.ms-rosto-ini{background:var(--cor-fluor);color:var(--cor-fluor-tinta);font-family:var(--face-cartaz);font-weight:900;font-size:1rem;}
+.ms-linha-diz{min-width:0;display:grid;gap:.3rem;}
+.ms-linha-quem{display:flex;align-items:baseline;gap:.6rem;min-width:0;}
+.ms-linha-quem b{padding-block:.2em .15em;margin-block:-.2em -.15em;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:1.12rem;line-height:1;
+  text-transform:uppercase;color:var(--cor-texto-2);transition:color var(--dur-curta) var(--mov-entrada);
+}
+.ms-linha:hover .ms-linha-quem b,.ms-linha[aria-current="page"] .ms-linha-quem b{color:var(--cor-texto);}
+.ms-linha-quem small,.ms-com-diz small{
+  flex:none;font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;font-size:.56rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--cor-texto-4);
+}
+.ms-linha-ultima{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.86rem;color:var(--cor-texto-3);}
+.ms-linha-ultima em{font-style:normal;font-family:var(--face-painel);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cor-texto-4);}
+.ms-ponto{width:.5rem;height:.5rem;border-radius:50%;background:var(--cor-fluor);}
+.ms-linha[data-nova] .ms-linha-quem b{color:var(--cor-texto);}
+.ms-linha[data-nova] .ms-linha-ultima{color:var(--cor-texto);font-weight:600;}
+.ms-vazio{display:grid;gap:1rem;padding:1.4rem 1.2rem;color:var(--cor-texto-2);font-size:.92rem;line-height:1.5;}
+.ms-vazio p{margin:0;}
+.ms-vazio b{display:block;margin-bottom:.3rem;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:1.3rem;line-height:1;text-transform:uppercase;color:var(--cor-texto);}
+.ms-ir{
+  justify-self:start;display:inline-flex;align-items:center;min-height:2.8rem;padding:0 1.3rem;border-radius:999px;
+  background:var(--cor-fluor);color:#140800;text-decoration:none;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:1.05rem;text-transform:uppercase;
+}
+.ms-ir:hover{background:#FF8126;}
+.ms-ir:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+/* carregando: o desenho das linhas */
+.ms-esq{display:grid;grid-template-columns:2.6rem minmax(0,1fr);align-items:center;gap:.85rem;padding:.95rem 1.1rem;}
+.ms-barras{display:grid;gap:.5rem;}
+.ms-barras i{display:block;height:.7rem;width:55%;border-radius:2px;background:#2A2A30;}
+.ms-barras i:last-child{width:85%;height:.55rem;background:#24242A;}
+.ms-esq-conversa{display:grid;gap:1.6rem;padding:1.8rem 2rem;}
+.ms-esq-conversa i{display:block;height:1.1rem;width:min(30rem,70%);border-radius:2px;background:#24242A;}
+.ms-esq-conversa i:nth-child(2){width:min(22rem,50%);background:#1E1E23;}
+@media (prefers-reduced-motion:no-preference){
+  .ms-esq,.ms-esq-conversa{animation:nt-respira 1.2s ease-in-out infinite alternate;}
+}
+
+/* A CONVERSA */
+.ms-conversa{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;}
+.ms-conversa-nada{align-items:flex-start;justify-content:center;padding:2rem;}
+.ms-conversa-nada p,.ms-conversa-nada h2{
+  margin:0;max-width:16ch;font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;
+  font-size:clamp(1.8rem,1.2rem + 1.4vw,2.6rem);line-height:.92;text-transform:uppercase;color:var(--cor-texto-3);
+}
+.ms-conversa-nada .ms-esq-conversa{align-self:stretch;padding:0;}
+.ms-com{display:flex;align-items:center;gap:.9rem;padding:1rem 2rem;border-bottom:1px solid var(--cor-risco);}
+.ms-com-diz{display:flex;align-items:baseline;gap:.7rem;min-width:0;}
+.ms-com-diz h2{margin:0;min-width:0;display:flex;font:inherit;}
+.ms-com-diz a,.ms-com-diz b{padding-block:.2em .15em;margin-block:-.2em -.15em;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:1.6rem;line-height:1;
+  text-transform:uppercase;color:var(--cor-texto);text-decoration:none;transition:color var(--dur-curta) var(--mov-entrada);
+}
+.ms-com-diz a:hover{color:var(--cor-fluor);}
+.ms-com-diz a:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:3px;border-radius:2px;}
+.ms-perfil{
+  margin-left:auto;flex:none;text-decoration:none;white-space:nowrap;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;font-size:.64rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--cor-fluor);
+}
+.ms-perfil::after{content:" →";}
+.ms-perfil:hover{color:#FF8126;}
+.ms-voltar{display:none;}
+.ms-rolo{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:1.8rem 2rem 1rem;
+  scrollbar-width:thin;scrollbar-color:rgba(237,233,225,.18) transparent;}
+.ms-rolo:focus-visible{outline:2px solid var(--cor-ambar);outline-offset:-2px;}
+.ms-aviso{margin:auto 0;max-width:24ch;padding:2rem 0;color:var(--cor-texto-3);font-size:1rem;line-height:1.5;}
+.ms-rolo:has(> .ms-aviso){display:flex;}
+
+/* AS FALAS, COMO A LETRA: cada vez que alguém fala, o rótulo de quem é
+   (no lugar do "ESTROFE 1") e as falas seguidas embaixo. A da outra pessoa
+   à esquerda, com o filete laranja do refrão e o texto aceso; a SUA à
+   direita, espelhada: o "Você" e o fio fino do lado direito, o texto um tom
+   abaixo. */
+.ms-msgs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+.ms-bloco{display:flex;flex-direction:column;align-items:flex-start;max-width:min(40rem,84%);}
+.ms-bloco + .ms-bloco{margin-top:1.6rem;}
+.ms-bloco[data-minha]{align-self:flex-end;align-items:flex-end;}
+.ms-quem{
+  display:block;margin:0 0 .5rem;
+  font-family:var(--face-painel);font-variation-settings:'wdth' 87.5;font-weight:600;
+  font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cor-ambar);
+}
+.ms-bloco[data-minha] .ms-quem{color:var(--cor-texto-4);}
+.ms-bloco > ol{list-style:none;margin:0;padding:.1rem 0 .1rem 1.2rem;border-left:3px solid var(--cor-fluor);display:grid;gap:.5rem;}
+.ms-bloco[data-minha] > ol{padding:.1rem 1.3rem .1rem 0;border-left:0;border-right:1px solid rgba(237,233,225,.24);}
+.ms-msg p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;text-wrap:pretty;font-size:clamp(1.02rem,.95rem + .2vw,1.12rem);line-height:1.5;font-weight:600;color:var(--cor-texto);}
+.ms-bloco[data-minha] .ms-msg{text-align:right;}
+.ms-bloco[data-minha] .ms-msg p{font-weight:500;color:var(--cor-texto-2);}
+.ms-msg small{display:block;margin-top:.3rem;font-family:var(--face-painel);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cor-texto-4);}
+.ms-msg[data-estado="enviando"] p{opacity:.55;}
+.ms-msg[data-estado="falhou"] p{color:var(--cor-texto-3);text-decoration:line-through;text-decoration-color:var(--cor-fluor);}
+.ms-falhou{color:var(--cor-ambar) !important;letter-spacing:.04em !important;text-transform:none !important;font-family:inherit !important;font-size:.82rem !important;}
+.ms-falhou button{margin-left:.35rem;padding:0;border:0;background:none;color:var(--cor-texto);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;}
+@media (prefers-reduced-motion:no-preference){
+  .ms-bloco:last-child .ms-msg:last-child{animation:ms-entra .26s cubic-bezier(.2,.8,.25,1) both;}
+}
+@keyframes ms-entra{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+/* chegou mensagem com a pessoa lendo lá em cima */
+.ms-nova{
+  position:absolute;left:2rem;bottom:6.2rem;z-index:2;
+  min-height:2.4rem;padding:0 1.05rem;border:0;border-radius:999px;background:var(--cor-fluor);color:#140800;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:.95rem;text-transform:uppercase;
+  cursor:pointer;box-shadow:0 12px 26px -10px rgba(0,0,0,.9);
+}
+@media (prefers-reduced-motion:no-preference){.ms-nova{animation:ms-entra .22s var(--mov-entrada) both;}}
+.ms-nova:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+
+/* ESCREVER: uma folha embaixo, sem caixa; o foco acende a borda de cima */
+.ms-escrever{
+  display:flex;align-items:flex-end;gap:1rem;padding:1rem 1.2rem 1rem 2rem;
+  border-top:1px solid var(--cor-risco);background:#131316;
+  transition:box-shadow var(--dur-curta) var(--mov-entrada);
+}
+.ms-escrever:focus-within{box-shadow:inset 0 2px 0 var(--cor-fluor);}
+.ms-escrever textarea{
+  flex:1;min-width:0;min-height:2.9rem;max-height:10rem;resize:none;padding:.7rem 0;border:0;background:none;color:var(--cor-texto);
+  font:inherit;font-size:1.05rem;line-height:1.5rem;
+}
+.ms-escrever textarea::placeholder{color:var(--cor-texto-4);}
+.ms-escrever textarea:focus,.ms-escrever textarea:focus-visible{outline:0;box-shadow:none;}
+.ms-enviar{
+  flex:none;min-height:2.9rem;padding:0 1.4rem;border:0;border-radius:999px;background:var(--cor-fluor);color:#140800;cursor:pointer;
+  font-family:var(--face-cartaz);font-variation-settings:var(--largura-cartaz);font-weight:900;font-size:1.1rem;text-transform:uppercase;
+  transition:background-color var(--dur-curta) var(--mov-entrada),color var(--dur-curta) var(--mov-entrada),transform var(--dur-toque) var(--mov-entrada);
+}
+.ms-enviar:hover{background:#FF8126;}
+.ms-enviar:active{transform:scale(.97);}
+/* sem texto, o enviar fica em contorno */
+.ms-enviar:disabled{cursor:default;transform:none;background:none;box-shadow:inset 0 0 0 1px var(--cor-risco-forte);color:var(--cor-texto-4);}
+.ms-enviar:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+
+/* NO CELULAR: uma coisa de cada vez. A lista; aberta a conversa, ela
+   ocupa a caixa inteira, com o voltar para as conversas. */
+@media (max-width:55.99rem){
+  .ms-caixa{grid-template-columns:minmax(0,1fr);height:max(24rem,calc(100dvh - 13.5rem));}
+  .tocando .ms-caixa{height:max(22rem,calc(100dvh - 13.5rem - var(--altura-player, 4.5rem)));}
+  .ms-lado{border-right:0;}
+  .ms:not([data-aberta]) .ms-conversa{display:none;}
+  .ms[data-aberta] .ms-lado{display:none;}
+  /* com a conversa aberta, o título da página sai da vista (fica para o leitor de tela) */
+  .ms[data-aberta] .ms-cab{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+  .ms[data-aberta] .ms-caixa{height:max(24rem,calc(100dvh - 8rem));}
+  .tocando .ms[data-aberta] .ms-caixa{height:max(22rem,calc(100dvh - 8rem - var(--altura-player, 4.5rem)));}
+  .ms-voltar{
+    display:grid;place-items:center;flex:none;width:2.6rem;height:2.6rem;margin-left:-.5rem;border-radius:50%;color:var(--cor-texto-2);
+  }
+  .ms-voltar svg{width:1.3rem;height:1.3rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .ms-voltar:focus-visible{outline:0;box-shadow:var(--sombra-foco);}
+  .ms-com{padding:.8rem 1rem;gap:.7rem;}
+  .ms-com .ms-rosto{width:2.3rem;height:2.3rem;}
+  .ms-com-diz{flex-direction:column;align-items:flex-start;gap:.25rem;}
+  .ms-com-diz a,.ms-com-diz b{font-size:1.3rem;max-width:100%;}
+  .ms-perfil{display:none;}
+  .ms-rolo{padding:1.3rem 1rem .8rem;}
+  .ms-escrever{padding:.75rem .75rem .75rem 1rem;gap:.6rem;}
+  .ms-nova{left:1rem;}
+}

@@ -39,7 +39,9 @@ export default function ViewTracker({ postId }: ViewTrackerProps) {
     const alreadyViewed = viewed.includes(postId)
 
     if (!alreadyViewed) {
-      fetch(`/api/posts/${postId}/view`, {
+      // Com o caminho inteiro: desde 22/10/2026 o blog mora em tribhus.com/blog, e o
+      // /api/... solto caia no site (404). Nenhuma visita foi contada de 22 a 31/10.
+      fetch(`/blog/api/posts/${postId}/view`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +78,7 @@ export default function ViewTracker({ postId }: ViewTrackerProps) {
       sent = true
       const timeOnPage = Math.round((Date.now() - startedAt) / 1000)
       const payload = JSON.stringify({ time_on_page: timeOnPage, scroll_depth: maxScroll })
-      const url = `/api/posts/view/${viewId}/engagement`
+      const url = `/blog/api/posts/view/${viewId}/engagement`
       try {
         if (navigator.sendBeacon) {
           navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }))

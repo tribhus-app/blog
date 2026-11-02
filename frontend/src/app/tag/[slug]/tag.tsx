@@ -1,7 +1,8 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import PostCard from '@/components/posts/PostCard'
-import Paginacao, { POR_PAGINA, caminhoDaPagina } from '@/components/posts/Paginacao'
+import { POR_PAGINA, caminhoDaPagina } from '@/components/posts/Paginacao'
+import { PaginaDaLista } from '@/components/blog/PaginaDaLista'
+import { resumo } from '@/lib/blog'
 import { Post, Tag } from '@/types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
@@ -71,11 +72,9 @@ export async function slugsDasTags() {
 export async function metadataDaTag(slug: string, pagina: number): Promise<Metadata> {
   const tag = await getTagBySlug(slug)
 
-  if (!tag) {
-    return {
-      title: 'Tag não encontrada',
-    }
-  }
+  // o 404 sai ja dos metadados, para o status voltar 404 de verdade
+  if (!tag) notFound()
+  if (pagina > 1 && (await getPostsByTag(slug, pagina)).posts.length === 0) notFound()
 
   const sufixo = pagina > 1 ? ` (página ${pagina})` : ''
   const url = `https://tribhus.com/blog${caminhoDaPagina(`/tag/${tag.slug}`, pagina)}`
@@ -123,69 +122,18 @@ export async function PaginaDaTag({ slug, pagina }: { slug: string; pagina: numb
   if (pagina > 1 && posts.length === 0) notFound()
   const allTags = await getAllTags()
 
+  // Desenho do pacote do redesenho (30/10/2026); as palavras sao as do ar
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <section className="relative py-16 border-b border-border bg-primary/5">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-2 text-sm text-text-muted mb-4">
-            <a href="/blog" className="hover:text-white transition-colors">Início</a>
-            <span>/</span>
-            <span>Tags</span>
-            <span>/</span>
-            <span className="text-primary-light">{tag.name}</span>
-          </div>
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl md:text-4xl text-primary-light">#</span>
-            <h1 className="text-3xl md:text-4xl font-bold text-white">{tag.name}</h1>
-          </div>
-          <p className="text-text-secondary">
-            {total} {total === 1 ? 'post encontrado' : 'posts encontrados'}
-          </p>
-        </div>
-      </section>
-
-      {/* Posts Grid */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        {posts.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
-            <Paginacao base={`/tag/${tag.slug}`} atual={pagina} total={totalPaginas} />
-          </>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-text-muted text-lg">Nenhum post encontrado com esta tag.</p>
-            <a
-              href="/blog"
-              className="inline-block mt-4 text-primary-light hover:text-primary-hover transition-colors"
-            >
-              Voltar para o início
-            </a>
-          </div>
-        )}
-      </section>
-
-      {/* Other Tags */}
-      <section className="max-w-7xl mx-auto px-4 py-12 border-t border-border">
-        <h2 className="text-xl font-bold text-white mb-6">Outras Tags</h2>
-        <div className="flex flex-wrap gap-3">
-          {allTags
-            .filter((t) => t.slug !== slug)
-            .map((t) => (
-              <a
-                key={t.slug}
-                href={`/blog/tag/${t.slug}`}
-                className="px-4 py-2 bg-dark-card border border-border rounded-lg text-text-secondary hover:text-white hover:border-primary transition-all"
-              >
-                {t.name}
-              </a>
-            ))}
-        </div>
-      </section>
-    </div>
+    <PaginaDaLista
+      migalha={[{ href: '/blog', t: 'Início' }, { t: 'Tags' }, { t: tag.name }]}
+      titulo={tag.name}
+      prefixo="#"
+      contagem={`${total} ${total === 1 ? 'post encontrado' : 'posts encontrados'}`}
+      artigos={posts.map((p) => resumo(p as never))}
+      paginacao={{ atual: pagina, total: totalPaginas, href: (k) => `/blog${caminhoDaPagina(`/tag/${tag.slug}`, k)}` }}
+      /* a tag sem nenhum post tem pagina: ela diz isso e aponta para o arquivo */
+      vazio={<><p>Ainda não há posts com esta tag.</p><a className="blc-ver" href="/blog/arquivo">Ver todas as publicações</a></>}
+      outras={{ titulo: 'Outras Tags', tag: true, itens: allTags.filter((t) => t.slug !== slug && (t.postCount ?? 0) > 0).map((t) => ({ href: `/blog/tag/${t.slug}`, t: t.name })) }}
+    />
   )
 }

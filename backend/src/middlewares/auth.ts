@@ -55,6 +55,25 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 }
 
+/* Le o token do painel sem barrar quem nao tem: para as rotas publicas que
+   mostram um pouco mais ao administrador (o e-mail dos autores, os rascunhos
+   na lista). Token ausente, invalido ou de quem nao e admin: false. */
+export async function pedidoDeAdmin(req: Request): Promise<boolean> {
+  const authHeader = req.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false
+  try {
+    const secret = process.env.JWT_SECRET || 'tribhus-blog-secret'
+    const decoded = jwt.verify(authHeader.split(' ')[1], secret) as JwtPayload
+    const user = await prisma.blogAuthor.findUnique({
+      where: { id: decoded.userId },
+      select: { isAdmin: true },
+    })
+    return user?.isAdmin ?? false
+  } catch {
+    return false
+  }
+}
+
 export function adminMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!req.user?.isAdmin) {
     return res.status(403).json({ error: 'Acesso negado. Apenas administradores.' })
